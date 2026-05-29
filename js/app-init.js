@@ -94,7 +94,10 @@
             controller.markHintAsViewed(hint.id);
             controller.markHintsShownThisSession();
             if (global.DSShellModalController && typeof global.DSShellModalController.open === 'function') {
-                global.DSShellModalController.open({ overlay: '#hintsModal' });
+                var hintsOverlay = document.getElementById('hintsModal');
+                if (hintsOverlay) {
+                    global.DSShellModalController.open({ overlay: hintsOverlay });
+                }
             }
         }
 

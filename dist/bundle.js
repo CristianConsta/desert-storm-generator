@@ -28346,7 +28346,10 @@
             controller.markHintAsViewed(hint.id);
             controller.markHintsShownThisSession();
             if (global2.DSShellModalController && typeof global2.DSShellModalController.open === "function") {
-              global2.DSShellModalController.open({ overlay: "#hintsModal" });
+              var hintsOverlay = document.getElementById("hintsModal");
+              if (hintsOverlay) {
+                global2.DSShellModalController.open({ overlay: hintsOverlay });
+              }
             }
           }
           FirebaseService.setAuthCallback((isSignedIn, user) => {
