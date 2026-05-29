@@ -385,6 +385,25 @@
                 </div>
             </div>
 
+            <div id="hintsModal" class="coord-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="hintsTitle" tabindex="-1">
+                <div class="modal-shell">
+                    <div class="modal-header">
+                        <h2 id="hintsTitle" class="modal-title" data-i18n="hints_title">Did You Know?</h2>
+                        <button id="hintsCloseBtn" class="clear-btn" title="Close" aria-label="Close"><span class="action-btn-text" data-i18n="close">Close</span><span class="action-btn-icon" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="3" x2="13" y2="13"/><line x1="13" y1="3" x2="3" y2="13"/></svg></span></button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="hintsContent" class="hints-content">
+                            <h3 id="hintTitleEl" data-i18n=""></h3>
+                            <p id="hintDescEl" data-i18n=""></p>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button id="hintsSkipBtn" class="secondary" data-i18n="hints_skip">Skip</button>
+                        <button id="hintsGotItBtn" data-i18n="hints_got_it">Got It</button>
+                    </div>
+                </div>
+            </div>
+
             <div id="uploadTargetModal" class="coord-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="uploadTargetTitle" tabindex="-1">
                 <div class="upload-target-card modal-shell modal-shell--upload-target">
                     <h2 id="uploadTargetTitle" class="upload-target-title" data-i18n="upload_target_title">Upload Destination</h2>
