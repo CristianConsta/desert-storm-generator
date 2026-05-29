@@ -264,6 +264,23 @@
         };
     }
 
+    function fallbackWikiGateway(gatewayUtils) {
+        return {
+            loadEventWiki: async function loadEventWiki(eventId, context) {
+                return gatewayUtils.withManager(function (svc) { return svc.loadEventWiki(eventId, context); }, gatewayUtils.notLoadedResult());
+            },
+            saveEventWiki: async function saveEventWiki(eventId, wikiData, context) {
+                return gatewayUtils.withManager(function (svc) { return svc.saveEventWiki(eventId, wikiData, context); }, gatewayUtils.notLoadedResult());
+            },
+            deleteEventWiki: async function deleteEventWiki(eventId, context) {
+                return gatewayUtils.withManager(function (svc) { return svc.deleteEventWiki(eventId, context); }, gatewayUtils.notLoadedResult());
+            },
+            getEventWikiUrl: function getEventWikiUrl(eventId, context) {
+                return gatewayUtils.withManager(function (svc) { return svc.getEventWikiUrl(eventId, context); }, '');
+            },
+        };
+    }
+
     function fallbackPlayerUpdatesGateway(gatewayUtils) {
         return {
             createUpdateToken: async function createUpdateToken(allianceId, playerName, options) {
@@ -329,6 +346,7 @@
     const notificationsGateway = fromFactory('DSSharedFirebaseNotificationsGateway', fallbackNotificationsGateway);
     const eventHistoryGateway = fromFactory('DSSharedFirebaseEventHistoryGateway', fallbackEventHistoryGateway);
     const playerUpdatesGateway = fromFactory('DSSharedFirebasePlayerUpdatesGateway', fallbackPlayerUpdatesGateway);
+    const wikiGateway = fromFactory('DSSharedFirebaseWikiGateway', fallbackWikiGateway);
 
     function normalizeFeatureFlagValue(value, fallbackValue) {
         if (typeof value === 'boolean') {
@@ -1165,6 +1183,20 @@
             }
             return { success: false, error: 'Unknown source: ' + source };
         },
+    };
+
+    // Event Wiki
+    FirebaseService.loadEventWiki = function loadEventWiki(eventId, context) {
+        return wikiGateway.loadEventWiki(eventId, context);
+    };
+    FirebaseService.saveEventWiki = function saveEventWiki(eventId, wikiData, context) {
+        return wikiGateway.saveEventWiki(eventId, wikiData, context);
+    };
+    FirebaseService.deleteEventWiki = function deleteEventWiki(eventId, context) {
+        return wikiGateway.deleteEventWiki(eventId, context);
+    };
+    FirebaseService.getEventWikiUrl = function getEventWikiUrl(eventId, context) {
+        return wikiGateway.getEventWikiUrl(eventId, context);
     };
 
     global.FirebaseService = FirebaseService;

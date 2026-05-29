@@ -8,6 +8,11 @@ const FIREBASE_CONFIG = {
     appId: "REPLACE_ME"
 };
 
+// DeepL API key for wiki translations (free tier: 500K chars/month)
+// Get yours at https://www.deepl.com/pro-api
+const DEEPL_API_KEY = "REPLACE_ME";
+
 if (typeof window !== 'undefined') {
     window.FIREBASE_CONFIG = FIREBASE_CONFIG;
+    window.DEEPL_API_KEY = DEEPL_API_KEY;
 }

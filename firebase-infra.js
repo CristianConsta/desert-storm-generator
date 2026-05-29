@@ -40,6 +40,7 @@
     const GAME_SOLOPLAYER_PLAYERS_SUBCOLLECTION = 'players';
     const GAME_ALLIANCE_PLAYERS_SUBCOLLECTION = 'alliance_players';
     const GAME_EVENT_HISTORY_SUBCOLLECTION = 'event_history';
+    const GAME_EVENT_WIKI_SUBCOLLECTION = 'event_wiki';
 
     const MULTIGAME_FLAG_DEFAULTS = Object.freeze({
         MULTIGAME_ENABLED: false,
@@ -368,6 +369,32 @@
         return invitesRef.doc(normalizedInviteId).collection('candidates');
     }
 
+    function getSoloEventWikiCollectionRef(gameId, uid) {
+        const soloRef = getSoloplayerDocRef(gameId, uid);
+        if (!soloRef) { return null; }
+        return soloRef.collection(GAME_EVENT_WIKI_SUBCOLLECTION);
+    }
+
+    function getSoloEventWikiDocRef(gameId, uid, eventId) {
+        const collRef = getSoloEventWikiCollectionRef(gameId, uid);
+        const normalizedId = typeof eventId === 'string' ? eventId.trim() : '';
+        if (!collRef || !normalizedId) { return null; }
+        return collRef.doc(normalizedId);
+    }
+
+    function getAllianceEventWikiCollectionRef(gameId, allianceId) {
+        const allianceRef = getGameAllianceDocRef(gameId, allianceId);
+        if (!allianceRef) { return null; }
+        return allianceRef.collection(GAME_EVENT_WIKI_SUBCOLLECTION);
+    }
+
+    function getAllianceEventWikiDocRef(gameId, allianceId, eventId) {
+        const collRef = getAllianceEventWikiCollectionRef(gameId, allianceId);
+        const normalizedId = typeof eventId === 'string' ? eventId.trim() : '';
+        if (!collRef || !normalizedId) { return null; }
+        return collRef.doc(normalizedId);
+    }
+
     // ── Game context resolvers ───────────────────────────────────────────────
 
     function resolveScopedActiveGameStorageKey(userOrUid) {
@@ -650,6 +677,10 @@
         getGameAlliancePendingUpdatesCollectionRef: getGameAlliancePendingUpdatesCollectionRef,
         getGameAllianceSharedUpdateInvitesCollectionRef: getGameAllianceSharedUpdateInvitesCollectionRef,
         getGameAllianceSharedUpdateInviteCandidatesCollectionRef: getGameAllianceSharedUpdateInviteCandidatesCollectionRef,
+        getSoloEventWikiCollectionRef: getSoloEventWikiCollectionRef,
+        getSoloEventWikiDocRef: getSoloEventWikiDocRef,
+        getAllianceEventWikiCollectionRef: getAllianceEventWikiCollectionRef,
+        getAllianceEventWikiDocRef: getAllianceEventWikiDocRef,
         // game context resolvers
         resolveScopedActiveGameStorageKey: resolveScopedActiveGameStorageKey,
         resolveGameplayContext: resolveGameplayContext,

@@ -6453,6 +6453,118 @@ const FirebaseManager = (function() {
         }
     }
 
+    // ── Event Wiki ──────────────────────────────────────────────────────────
+
+    async function loadEventWiki(eventId, context) {
+        if (!db || !eventId) {
+            return { success: false, error: 'Not available' };
+        }
+        try {
+            var gameId = normalizeGameId(activeGameplayGameId) || DEFAULT_GAME_ID;
+            var source = getPlayerSource(context);
+            var docRef = null;
+            if (source === 'alliance' && allianceId) {
+                docRef = getAllianceEventWikiDocRef(gameId, allianceId, eventId);
+            } else {
+                var user = currentUser;
+                if (!user) { return { success: false, error: 'Not signed in' }; }
+                docRef = getSoloEventWikiDocRef(gameId, user.uid, eventId);
+            }
+            if (!docRef) { return { success: false, error: 'Invalid path' }; }
+            var snap = await docRef.get();
+            if (!snap.exists) {
+                return { success: true, data: null };
+            }
+            return { success: true, data: snap.data() };
+        } catch (err) {
+            console.error('loadEventWiki error:', err);
+            return { success: false, error: err.message };
+        }
+    }
+
+    async function saveEventWiki(eventId, wikiData, context) {
+        if (!db || !eventId || !wikiData) {
+            return { success: false, error: 'Not available' };
+        }
+        try {
+            var gameId = normalizeGameId(activeGameplayGameId) || DEFAULT_GAME_ID;
+            var source = getPlayerSource(context);
+            var user = currentUser;
+            if (!user) { return { success: false, error: 'Not signed in' }; }
+            var docRef = null;
+            if (source === 'alliance' && allianceId) {
+                docRef = getAllianceEventWikiDocRef(gameId, allianceId, eventId);
+            } else {
+                docRef = getSoloEventWikiDocRef(gameId, user.uid, eventId);
+            }
+            if (!docRef) { return { success: false, error: 'Invalid path' }; }
+            var payload = Object.assign({}, wikiData, {
+                eventId: eventId,
+                gameId: gameId,
+                lastEditedBy: user.uid,
+                lastEditedByName: user.displayName || '',
+                lastEditedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                ownerType: source === 'alliance' && allianceId ? 'alliance' : 'personal',
+            });
+            // Set createdBy only on first save
+            var snap = await docRef.get();
+            if (!snap.exists) {
+                payload.createdBy = user.uid;
+                payload.createdByName = user.displayName || '';
+                payload.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+            }
+            await docRef.set(payload, { merge: true });
+            return { success: true };
+        } catch (err) {
+            console.error('saveEventWiki error:', err);
+            return { success: false, error: err.message };
+        }
+    }
+
+    async function deleteEventWiki(eventId, context) {
+        if (!db || !eventId) {
+            return { success: false, error: 'Not available' };
+        }
+        try {
+            var gameId = normalizeGameId(activeGameplayGameId) || DEFAULT_GAME_ID;
+            var source = getPlayerSource(context);
+            var user = currentUser;
+            if (!user) { return { success: false, error: 'Not signed in' }; }
+            var docRef = null;
+            if (source === 'alliance' && allianceId) {
+                docRef = getAllianceEventWikiDocRef(gameId, allianceId, eventId);
+            } else {
+                docRef = getSoloEventWikiDocRef(gameId, user.uid, eventId);
+            }
+            if (!docRef) { return { success: false, error: 'Invalid path' }; }
+            await docRef.delete();
+            return { success: true };
+        } catch (err) {
+            console.error('deleteEventWiki error:', err);
+            return { success: false, error: err.message };
+        }
+    }
+
+    function getEventWikiUrl(eventId, context) {
+        var gameId = normalizeGameId(activeGameplayGameId) || DEFAULT_GAME_ID;
+        var source = getPlayerSource(context);
+        var base = 'event-wiki.html';
+        var params = 'game=' + encodeURIComponent(gameId) + '&event=' + encodeURIComponent(eventId);
+        if (source === 'alliance' && allianceId) {
+            params += '&aid=' + encodeURIComponent(allianceId);
+        } else if (currentUser) {
+            params += '&uid=' + encodeURIComponent(currentUser.uid);
+        }
+        return base + '?' + params;
+    }
+
+    function getSoloEventWikiDocRef(gameId, uid, eventId) {
+        return DSFirebaseInfra.getSoloEventWikiDocRef(gameId, uid, eventId);
+    }
+    function getAllianceEventWikiDocRef(gameId, allianceId, eventId) {
+        return DSFirebaseInfra.getAllianceEventWikiDocRef(gameId, allianceId, eventId);
+    }
+
     function subscribePendingUpdatesCount(allianceIdParam, uidParam, callback) {
         // Support old 2-arg call: subscribePendingUpdatesCount(allianceId, callback)
         if (typeof uidParam === 'function') {
@@ -6908,6 +7020,11 @@ const FirebaseManager = (function() {
         createPersonalPendingUpdate: createPersonalPendingUpdate,
         loadPersonalPendingUpdates: loadPersonalPendingUpdates,
         updatePersonalPendingUpdateStatus: updatePersonalPendingUpdateStatus,
+        // Event Wiki
+        loadEventWiki: loadEventWiki,
+        saveEventWiki: saveEventWiki,
+        deleteEventWiki: deleteEventWiki,
+        getEventWikiUrl: getEventWikiUrl,
         // Game-centric path builders (v2 migration)
         getGameUserStateDocRef: getGameUserStateDocRef,
         getSoloplayerDocRef: getSoloplayerDocRef,

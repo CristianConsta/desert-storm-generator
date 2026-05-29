@@ -2,6 +2,13 @@
 /* Included by both index.html and player-update.html */
 
 :root {
+    /* === Spacing & Typography (theme-independent) === */
+    --ds-space-xs:  4px;
+    --ds-space-sm:  8px;
+    --ds-space-md:  16px;
+    --ds-space-lg:  24px;
+    --ds-space-xl:  32px;
+    --ds-space-2xl: 48px;
     /* === Design System Tokens === */
     --ds-surface-base: #070c19;
     --ds-surface-raised: #152040;

@@ -29,6 +29,9 @@
         const onStartNewEvent = typeof config.onStartNewEvent === 'function'
             ? config.onStartNewEvent
             : function noopStart() {};
+        const getWikiUrl = typeof config.getWikiUrl === 'function'
+            ? config.getWikiUrl
+            : null;
         const t = getTranslator(config.translate);
 
         listEl.innerHTML = '';
@@ -64,6 +67,24 @@
 
             button.appendChild(avatar);
             button.appendChild(textWrap);
+
+            if (getWikiUrl) {
+                const wikiUrl = getWikiUrl(eventId);
+                if (wikiUrl) {
+                    const wikiLink = document.createElement('a');
+                    wikiLink.className = 'events-list-wiki-link';
+                    wikiLink.href = wikiUrl;
+                    wikiLink.target = '_blank';
+                    wikiLink.rel = 'noopener noreferrer';
+                    wikiLink.title = t('events_manager_wiki_link');
+                    wikiLink.textContent = t('events_manager_wiki_link');
+                    wikiLink.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                    });
+                    button.appendChild(wikiLink);
+                }
+            }
+
             listEl.appendChild(button);
         });
 

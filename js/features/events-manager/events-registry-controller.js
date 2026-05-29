@@ -614,6 +614,15 @@
             cancelBtn.setAttribute('aria-label', deps.t('settings_cancel'));
         }
 
+        var wikiBtn = document.getElementById('eventWikiBtn');
+        if (wikiBtn) {
+            var showWikiBtn = !isNewDraft;
+            wikiBtn.classList.toggle('hidden', !showWikiBtn);
+            wikiBtn.disabled = !showWikiBtn;
+            wikiBtn.title = deps.t('events_manager_wiki_btn');
+            wikiBtn.setAttribute('aria-label', deps.t('events_manager_wiki_btn'));
+        }
+
         var logoUploadBtn = document.getElementById('eventLogoUploadBtn');
         var logoRandomBtn = document.getElementById('eventLogoRandomBtn');
         var addBuildingBtn = document.getElementById('eventAddBuildingBtn');
@@ -699,6 +708,19 @@
             switchEvent(eventEditorCurrentId);
         }
         deps.openCoordinatesPicker();
+    }
+
+    function openEventWiki() {
+        var eventEditorCurrentId = deps.getEventEditorCurrentId();
+        if (!eventEditorCurrentId) {
+            return;
+        }
+        if (global.FirebaseService && typeof global.FirebaseService.getEventWikiUrl === 'function') {
+            var url = global.FirebaseService.getEventWikiUrl(eventEditorCurrentId);
+            if (url) {
+                global.open(url, '_blank', 'noopener,noreferrer');
+            }
+        }
     }
 
     // ---- building editor delegation ----
@@ -882,6 +904,12 @@
                 eventEditorCurrentId: eventEditorCurrentId,
                 generateAvatarDataUrl: generateEventAvatarDataUrl,
                 translate: deps.t,
+                getWikiUrl: function (eventId) {
+                    if (global.FirebaseService && typeof global.FirebaseService.getEventWikiUrl === 'function') {
+                        return global.FirebaseService.getEventWikiUrl(eventId);
+                    }
+                    return '';
+                },
                 onSelectEvent: function (eventId) {
                     deps.setEventEditorCurrentId(eventId);
                     switchEvent(eventId);
@@ -1299,6 +1327,7 @@
         enterEventEditMode: enterEventEditMode,
         cancelEventEditing: cancelEventEditing,
         openCoordinatesPickerFromEditor: openCoordinatesPickerFromEditor,
+        openEventWiki: openEventWiki,
 
         // building editor
         createEditorBuildingRow: createEditorBuildingRow,

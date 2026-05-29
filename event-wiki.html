@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-0+zM3HmxYr/E2d/zCMNa2JBmdXR0mgkvy3Op05wJpFY=' https://www.gstatic.com https://apis.google.com https://accounts.google.com; style-src 'self' 'unsafe-inline'; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.googleapis.com https://*.googleapis.com https://deepl-proxy.constantinescu-cristian.workers.dev https://api-free.deepl.com; img-src 'self' data: https://lh3.googleusercontent.com; font-src 'self' data:; base-uri 'none'; frame-src https://www.youtube.com https://player.vimeo.com https://accounts.google.com https://*.google.com https://*.firebaseapp.com; form-action 'self';">
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="theme-variables.css">
+    <link rel="stylesheet" href="vendor/quill.snow.css">
+    <link rel="stylesheet" href="event-wiki.css">
+    <title>Event Wiki</title>
+</head>
+<body>
+    <script>
+(function() {
+    var theme = localStorage.getItem('ds_theme');
+    if (theme && theme !== 'standard') {
+        document.documentElement.setAttribute('data-theme', theme);
+        document.body && document.body.setAttribute('data-theme', theme);
+    }
+})();
+    </script>
+
+    <div id="wikiRoot" class="wiki-root">
+        <div class="wiki-language-switcher">
+            <label for="languageSelect" data-i18n="settings_language_label">Language</label>
+            <select id="languageSelect" aria-label="Language selector">
+                <option value="en" data-i18n="language_name_en">English</option>
+                <option value="fr" data-i18n="language_name_fr">French</option>
+                <option value="de" data-i18n="language_name_de">German</option>
+                <option value="it" data-i18n="language_name_it">Italian</option>
+                <option value="ko" data-i18n="language_name_ko">Korean</option>
+                <option value="ro" data-i18n="language_name_ro">Romanian</option>
+            </select>
+        </div>
+
+        <!-- Header -->
+        <div id="wikiHeader" class="wiki-header hidden">
+            <div class="wiki-game-badge" id="wikiGameBadge"></div>
+            <div class="wiki-event-info">
+                <img id="wikiEventLogo" class="wiki-event-logo" alt="Event logo" src="data:,">
+                <div class="wiki-event-title-wrap">
+                    <h1 id="wikiEventName" class="wiki-event-name"></h1>
+                    <span id="wikiEventChars" class="wiki-event-chars"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Auth bar -->
+        <div id="wikiAuthBar" class="wiki-auth-bar hidden">
+            <div class="wiki-auth-user" id="wikiAuthUser"></div>
+            <div class="wiki-auth-actions">
+                <button type="button" id="wikiSignInBtn" class="wiki-btn wiki-btn-primary hidden" data-i18n="wiki_sign_in_btn">Sign in with Google</button>
+                <a id="wikiVisitPlatformBtn" href="index.html" target="_blank" rel="noopener noreferrer" class="wiki-btn wiki-btn-primary hidden" data-i18n="wiki_visit_platform">Visit Platform</a>
+                <button type="button" id="wikiEditBtn" class="wiki-btn wiki-btn-secondary hidden" data-i18n="wiki_edit_btn">Edit</button>
+                <button type="button" id="wikiShareBtn" class="wiki-btn wiki-btn-secondary hidden" data-i18n="wiki_share_btn">Share Link</button>
+                <button type="button" id="wikiTranslateBtn" class="wiki-btn wiki-btn-secondary hidden" data-i18n="wiki_translate_btn">Translate to All Languages</button>
+            </div>
+            <div id="wikiTranslateProgress" class="wiki-translate-progress hidden"></div>
+        </div>
+
+        <!-- Loading state -->
+        <div id="wikiLoading" class="wiki-state">
+            <span data-i18n="wiki_loading">Loading wiki...</span>
+        </div>
+
+        <!-- Read mode -->
+        <div id="wikiContent" class="wiki-content hidden">
+            <div id="wikiTranslationTabs" class="wiki-translation-tabs hidden"></div>
+            <div id="wikiTranslationStale" class="wiki-translation-stale hidden">
+                <span data-i18n="wiki_translations_outdated">Translations may be outdated</span>
+                <button type="button" id="wikiRetranslateBtn" class="wiki-btn wiki-btn-secondary wiki-btn-small" data-i18n="wiki_retranslate_btn">Re-translate</button>
+            </div>
+            <div id="wikiContentBody" class="wiki-content-body ql-editor"></div>
+            <div id="wikiMeta" class="wiki-meta hidden"></div>
+        </div>
+
+        <!-- Empty state -->
+        <div id="wikiEmpty" class="wiki-state hidden">
+            <h2 data-i18n="wiki_empty_title">No Wiki Yet</h2>
+            <p data-i18n="wiki_empty_description">No strategy wiki has been published for this event.</p>
+            <button type="button" id="wikiCreateBtn" class="wiki-btn wiki-btn-primary hidden" data-i18n="wiki_create_btn">Create Wiki</button>
+        </div>
+
+        <!-- Edit mode -->
+        <div id="wikiEditorSection" class="wiki-editor-section hidden">
+            <div class="wiki-editor-language-row">
+                <label for="wikiContentLanguage" data-i18n="wiki_content_language_label">Content language</label>
+                <select id="wikiContentLanguage">
+                    <option value="en">English</option>
+                    <option value="fr">French</option>
+                    <option value="de">German</option>
+                    <option value="it">Italian</option>
+                    <option value="ko">Korean</option>
+                    <option value="ro">Romanian</option>
+                </select>
+            </div>
+            <div id="wikiEditorToolbar"></div>
+            <div id="wikiEditor" class="wiki-editor-container"></div>
+            <div class="wiki-editor-actions">
+                <button type="button" id="wikiSaveBtn" class="wiki-btn wiki-btn-primary" data-i18n="wiki_save_btn">Save</button>
+                <button type="button" id="wikiCancelBtn" class="wiki-btn wiki-btn-secondary" data-i18n="wiki_cancel_btn">Cancel</button>
+                <button type="button" id="wikiDeleteBtn" class="wiki-btn wiki-btn-danger hidden" data-i18n="wiki_delete_btn">Delete Wiki</button>
+            </div>
+        </div>
+
+        <!-- Error state -->
+        <div id="wikiError" class="wiki-state hidden">
+            <p id="wikiErrorMessage" data-i18n="wiki_load_error">Failed to load wiki</p>
+        </div>
+
+        <!-- Toast notification -->
+        <div id="wikiToast" class="wiki-toast hidden"></div>
+    </div>
+
+    <script defer src="vendor/firebase-app-compat.js"></script>
+    <script defer src="vendor/firebase-auth-compat.js"></script>
+    <script defer src="vendor/firebase-firestore-compat.js"></script>
+    <script defer src="firebase-config.js"></script>
+    <script defer src="translations.js"></script>
+    <script defer src="js/core/i18n.js"></script>
+    <script defer src="vendor/quill.min.js"></script>
+    <script defer src="js/event-wiki/event-wiki.js?v=59459ea"></script>
+</body>
+</html>

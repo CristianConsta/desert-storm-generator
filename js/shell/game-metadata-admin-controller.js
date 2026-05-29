@@ -54,13 +54,16 @@
     }
 
     function syncGameMetadataMenuAvailability() {
-        var navGameMetadataBtn = document.getElementById('navGameMetadataBtn');
-        if (!navGameMetadataBtn) {
-            return;
-        }
         var allowed = isGameMetadataSuperAdmin(getCurrentAuthUser());
-        navGameMetadataBtn.classList.toggle('hidden', !allowed);
-        navGameMetadataBtn.disabled = !allowed;
+        var targets = [
+            document.getElementById('navGameMetadataBtn'),
+            document.getElementById('sidebarGameMetadataBtn')
+        ];
+        targets.forEach(function(btn) {
+            if (!btn) return;
+            btn.classList.toggle('hidden', !allowed);
+            btn.disabled = !allowed;
+        });
         if (!allowed) {
             closeGameMetadataOverlay();
         }

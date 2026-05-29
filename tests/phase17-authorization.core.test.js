@@ -137,16 +137,16 @@ test('setGameMetadata succeeds for super-admin caller', async (t) => {
 // Since app.js relies on DOM + many globals, we test the logic extracted:
 // isGameMetadataSuperAdmin must return false for non-admin → button stays hidden.
 
-test('navGameMetadataBtn defaults to hidden class in index.html', async () => {
+test('sidebarGameMetadataBtn defaults to hidden class in index.html', async () => {
   const fs = require('node:fs');
   const html = fs.readFileSync(
     path.resolve(__dirname, '../index.html'), 'utf8'
   );
-  const match = html.match(/<button\s+id="navGameMetadataBtn"[^>]*>/);
-  assert.ok(match, 'navGameMetadataBtn button should exist in index.html');
+  const match = html.match(/<button\s+id="sidebarGameMetadataBtn"[^>]*>/);
+  assert.ok(match, 'sidebarGameMetadataBtn button should exist in index.html');
   assert.ok(
     match[0].includes('hidden'),
-    'navGameMetadataBtn should have hidden class by default'
+    'sidebarGameMetadataBtn should have hidden class by default'
   );
 });
 

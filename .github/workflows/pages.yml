@@ -108,6 +108,7 @@ jobs:
           sparse-checkout: |
             index.html
             player-update.html
+            event-wiki.html
             app.js
             firebase-module.js
             firebase-infra.js
@@ -115,6 +116,7 @@ jobs:
             translations.js
             styles.css
             player-update.css
+            event-wiki.css
             theme-variables.css
             js
             vendor
@@ -139,7 +141,7 @@ jobs:
       - name: Stage deploy files
         run: |
           mkdir -p _site
-          cp index.html player-update.html app.js firebase-module.js firebase-infra.js firebase-auth-module.js translations.js styles.css player-update.css theme-variables.css firebase-config.js _site/
+          cp index.html player-update.html event-wiki.html app.js firebase-module.js firebase-infra.js firebase-auth-module.js translations.js styles.css player-update.css event-wiki.css theme-variables.css firebase-config.js _site/
           cp -r js _site/js
           cp -r vendor _site/vendor
           cp -r dist _site/dist

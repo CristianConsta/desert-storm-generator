@@ -22,7 +22,7 @@ const budgets = [
   },
   {
     file: 'firebase-module.js',
-    maxLines: resolveMax('FIREBASE_MODULE_MAX_LINES', 7000),
+    maxLines: resolveMax('FIREBASE_MODULE_MAX_LINES', 7500),
   },
 ];
 

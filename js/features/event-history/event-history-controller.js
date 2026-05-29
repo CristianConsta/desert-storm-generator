@@ -28,9 +28,12 @@
             _unsubscribePendingCount = _gateway.subscribePendingFinalizationCount(
                 allianceId,
                 function onPendingCount(count) {
-                    var badgeContainer = document.getElementById('eventHistoryPendingBadge');
-                    if (global.DSFeatureEventHistoryView && typeof global.DSFeatureEventHistoryView.renderPendingBadge === 'function') {
-                        global.DSFeatureEventHistoryView.renderPendingBadge(badgeContainer, count);
+                    var renderBadge = global.DSFeatureEventHistoryView && typeof global.DSFeatureEventHistoryView.renderPendingBadge === 'function'
+                        ? global.DSFeatureEventHistoryView.renderPendingBadge : null;
+                    if (renderBadge) {
+                        renderBadge(document.getElementById('eventHistoryPendingBadge'), count);
+                        renderBadge(document.getElementById('sidebarHistoryBadge'), count);
+                        renderBadge(document.getElementById('moreSheetHistoryBadge'), count);
                     }
                 }
             );

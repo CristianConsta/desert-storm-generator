@@ -300,6 +300,14 @@ service cloud.firestore {
                           && hasValidReviewedProposedValues(request.resource.data);
         }
 
+        // Event wiki pages (alliance — any member can edit, public reads)
+        match /event_wiki/{eventId} {
+          allow read: if true;
+          allow write: if isAllianceActor(
+            get(/databases/$(database)/documents/games/$(gameId)/alliances/$(allianceId)).data
+          );
+        }
+
         match /shared_update_invites/{inviteId} {
           allow create: if isAllianceActor(
             get(/databases/$(database)/documents/games/$(gameId)/alliances/$(allianceId)).data
@@ -438,6 +446,12 @@ service cloud.firestore {
                                .affectedKeys()
                                .hasOnly(['status', 'reviewedBy', 'reviewedAt', 'appliedTo', 'reviewedProposedValues'])
                         && hasValidReviewedProposedValues(request.resource.data);
+        }
+
+        // Event wiki pages (personal)
+        match /event_wiki/{eventId} {
+          allow read: if true;
+          allow write: if isSelf(uid);
         }
 
         match /shared_update_invites/{inviteId} {

@@ -68,6 +68,11 @@
                     dependencies.openCoordinatesPicker();
                 }
             },
+            openEventWiki: function openEventWiki() {
+                if (typeof dependencies.openEventWiki === 'function') {
+                    dependencies.openEventWiki();
+                }
+            },
         };
     }
 

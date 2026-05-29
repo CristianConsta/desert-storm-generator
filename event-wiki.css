@@ -1,0 +1,566 @@
+/* Event Wiki — Mobile-first standalone page styles */
+
+:root {
+    color-scheme: dark;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    background: var(--ds-surface-base);
+    color: var(--ds-text-primary);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* ── Root container ────────────────────────────────────────────────────── */
+
+.wiki-root {
+    max-width: min(760px, 92vw);
+    margin: 0 auto;
+    padding: 16px;
+    padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    min-height: 100vh;
+}
+
+/* ── Language switcher ─────────────────────────────────────────────────── */
+
+.wiki-language-switcher {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-bottom: 16px;
+    font-size: 13px;
+    color: var(--ds-text-muted);
+}
+
+.wiki-language-switcher select {
+    background: var(--ds-surface-raised);
+    color: var(--ds-text-primary);
+    border: 1px solid var(--ds-border-default);
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+/* ── Header ────────────────────────────────────────────────────────────── */
+
+.wiki-header {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.wiki-game-badge {
+    display: inline-block;
+    background: var(--ds-accent-secondary);
+    color: var(--ds-surface-base);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 3px 10px;
+    border-radius: 12px;
+    margin-bottom: 12px;
+}
+
+.wiki-event-info {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 14px;
+    justify-content: center;
+}
+
+.wiki-event-logo {
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
+    object-fit: cover;
+    border: 2px solid var(--ds-border-default);
+    background: var(--ds-surface-raised);
+    flex-shrink: 0;
+}
+
+.wiki-event-logo[src="data:,"] {
+    display: none;
+}
+
+.wiki-event-title-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.wiki-event-name {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--ds-text-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.wiki-event-chars {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 4px;
+}
+
+.wiki-hero-icon {
+    width: 28px;
+    height: 28px;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+    transition: transform 0.2s ease;
+}
+
+.wiki-hero-icon:hover {
+    transform: scale(1.2);
+}
+
+/* ── Auth bar ──────────────────────────────────────────────────────────── */
+
+.wiki-auth-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 20px;
+    padding: 10px 14px;
+    background: var(--ds-surface-raised);
+    border: 1px solid var(--ds-border-default);
+    border-radius: 10px;
+}
+
+.wiki-auth-user {
+    font-size: 13px;
+    color: var(--ds-text-muted);
+}
+
+.wiki-auth-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+/* ── Translation tabs ──────────────────────────────────────────────────── */
+
+.wiki-translation-tabs {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+    padding: 4px;
+    background: var(--ds-surface-1);
+    border-radius: 8px;
+}
+
+.wiki-translation-tab {
+    padding: 6px 14px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--ds-text-muted);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.wiki-translation-tab:hover {
+    background: var(--ds-surface-raised, rgba(255,255,255,0.06));
+    color: var(--ds-text-primary);
+}
+
+.wiki-translation-tab.active {
+    background: var(--ds-accent-secondary);
+    color: var(--ds-surface-base);
+}
+
+/* ── Translation stale warning ─────────────────────────────────────────── */
+
+.wiki-translation-stale {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    padding: 8px 12px;
+    background: rgba(240, 192, 64, 0.1);
+    border: 1px solid rgba(240, 192, 64, 0.4);
+    border-radius: 8px;
+    font-size: 13px;
+    color: var(--ds-text-muted);
+}
+
+.wiki-btn-small {
+    padding: 4px 10px;
+    min-height: 32px;
+    font-size: 12px;
+}
+
+/* ── Editor language row ───────────────────────────────────────────────── */
+
+.wiki-editor-language-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    font-size: 13px;
+    color: var(--ds-text-muted);
+}
+
+.wiki-editor-language-row select {
+    background: var(--ds-surface-1);
+    color: var(--ds-text-primary);
+    border: 1px solid var(--ds-border-default);
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 13px;
+}
+
+/* ── Translate progress ────────────────────────────────────────────────── */
+
+.wiki-translate-progress {
+    margin-top: 8px;
+    font-size: 13px;
+    color: var(--ds-accent-secondary);
+    text-align: center;
+    font-weight: 500;
+}
+
+.wiki-translate-progress.wiki-translate-done {
+    color: var(--ds-status-success, #4caf50);
+    font-weight: 600;
+}
+
+.wiki-translate-progress.wiki-translate-fail {
+    color: var(--ds-status-error, #f44336);
+    font-weight: 600;
+}
+
+/* ── Buttons ───────────────────────────────────────────────────────────── */
+
+.wiki-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 16px;
+    min-height: 44px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s ease;
+    text-decoration: none;
+}
+
+.wiki-btn:hover {
+    opacity: 0.85;
+}
+
+.wiki-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.wiki-btn-primary {
+    background: var(--ds-accent-secondary);
+    color: var(--ds-surface-base);
+}
+
+.wiki-btn-secondary {
+    background: var(--ds-surface-1);
+    color: var(--ds-text-primary);
+    border: 1px solid var(--ds-border-default);
+}
+
+.wiki-btn-danger {
+    background: var(--ds-status-error);
+    color: #fff;
+}
+
+/* ── States (loading, empty, error) ────────────────────────────────────── */
+
+.wiki-state {
+    text-align: center;
+    padding: 48px 16px;
+    color: var(--ds-text-muted);
+}
+
+.wiki-state h2 {
+    margin: 0 0 8px;
+    font-size: 20px;
+    color: var(--ds-text-primary);
+}
+
+.wiki-state p {
+    margin: 0 0 20px;
+    font-size: 15px;
+}
+
+/* ── Content (read mode) ───────────────────────────────────────────────── */
+
+.wiki-content {
+    margin-bottom: 24px;
+}
+
+.wiki-content-body {
+    background: var(--ds-surface-raised);
+    border: 1px solid var(--ds-border-default);
+    border-radius: 12px;
+    padding: 24px;
+    font-size: 15px;
+    line-height: 1.7;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+.wiki-content-body h1,
+.wiki-content-body h2,
+.wiki-content-body h3 {
+    color: var(--ds-text-primary);
+    margin-top: 24px;
+    margin-bottom: 12px;
+}
+
+.wiki-content-body h1:first-child,
+.wiki-content-body h2:first-child,
+.wiki-content-body h3:first-child {
+    margin-top: 0;
+}
+
+.wiki-content-body p {
+    margin: 0 0 12px;
+}
+
+.wiki-content-body img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin: 8px 0;
+}
+
+.wiki-content-body .ql-video {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    border-radius: 8px;
+    border: none;
+    margin: 8px 0;
+}
+
+.wiki-content-body ul,
+.wiki-content-body ol {
+    padding-left: 24px;
+    margin: 0 0 12px;
+}
+
+.wiki-content-body blockquote {
+    border-left: 4px solid var(--ds-accent-primary);
+    margin: 12px 0;
+    padding: 8px 16px;
+    color: var(--ds-text-muted);
+    background: var(--ds-surface-1);
+    border-radius: 0 8px 8px 0;
+}
+
+.wiki-content-body a {
+    color: var(--ds-accent-secondary);
+    text-decoration: underline;
+}
+
+.wiki-content-body pre {
+    background: var(--ds-surface-1);
+    padding: 12px;
+    border-radius: 8px;
+    overflow-x: auto;
+    font-size: 13px;
+}
+
+.wiki-content-body code {
+    background: var(--ds-surface-1);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 13px;
+}
+
+.wiki-meta {
+    margin-top: 16px;
+    padding: 12px 14px;
+    font-size: 12px;
+    color: var(--ds-text-muted);
+    border-top: 1px solid var(--ds-border-default);
+}
+
+/* ── Editor (edit mode) ────────────────────────────────────────────────── */
+
+.wiki-editor-section {
+    margin-bottom: 24px;
+}
+
+/* Quill theme overrides to match app design tokens */
+.wiki-editor-section .ql-toolbar.ql-snow {
+    background: var(--ds-surface-raised);
+    border: 1px solid var(--ds-border-default);
+    border-radius: 10px 10px 0 0;
+}
+
+.wiki-editor-section .ql-toolbar.ql-snow .ql-stroke {
+    stroke: var(--ds-text-muted);
+}
+
+.wiki-editor-section .ql-toolbar.ql-snow .ql-fill {
+    fill: var(--ds-text-muted);
+}
+
+.wiki-editor-section .ql-toolbar.ql-snow .ql-picker-label {
+    color: var(--ds-text-muted);
+}
+
+.wiki-editor-section .ql-toolbar.ql-snow button:hover .ql-stroke,
+.wiki-editor-section .ql-toolbar.ql-snow .ql-picker-label:hover .ql-stroke {
+    stroke: var(--ds-text-primary);
+}
+
+.wiki-editor-section .ql-toolbar.ql-snow button:hover .ql-fill,
+.wiki-editor-section .ql-toolbar.ql-snow .ql-picker-label:hover .ql-fill {
+    fill: var(--ds-text-primary);
+}
+
+.wiki-editor-section .ql-toolbar.ql-snow button.ql-active .ql-stroke {
+    stroke: var(--ds-accent-secondary);
+}
+
+.wiki-editor-section .ql-toolbar.ql-snow button.ql-active .ql-fill {
+    fill: var(--ds-accent-secondary);
+}
+
+.wiki-editor-section .ql-toolbar.ql-snow .ql-picker-options {
+    background: var(--ds-surface-raised);
+    border-color: var(--ds-border-default);
+}
+
+.wiki-editor-section .ql-toolbar.ql-snow .ql-picker-item {
+    color: var(--ds-text-primary);
+}
+
+.wiki-editor-container {
+    min-height: 300px;
+}
+
+.wiki-editor-section .ql-container.ql-snow {
+    background: var(--ds-surface-raised);
+    border: 1px solid var(--ds-border-default);
+    border-top: none;
+    border-radius: 0 0 10px 10px;
+    font-size: 15px;
+    color: var(--ds-text-primary);
+}
+
+.wiki-editor-section .ql-editor {
+    min-height: 300px;
+    line-height: 1.7;
+}
+
+.wiki-editor-section .ql-editor.ql-blank::before {
+    color: var(--ds-text-muted);
+    font-style: normal;
+}
+
+.wiki-editor-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+}
+
+.wiki-editor-actions .wiki-btn-danger {
+    margin-left: auto;
+}
+
+/* ── Toast notification ────────────────────────────────────────────────── */
+
+.wiki-toast {
+    position: fixed;
+    bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--ds-surface-raised);
+    color: var(--ds-text-primary);
+    border: 1px solid var(--ds-border-default);
+    border-radius: 10px;
+    padding: 12px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    z-index: 1000;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    transition: opacity 0.3s ease;
+}
+
+/* ── Utility ───────────────────────────────────────────────────────────── */
+
+.hidden {
+    display: none !important;
+}
+
+/* ── Responsive ────────────────────────────────────────────────────────── */
+
+@media (min-width: 480px) {
+    .wiki-root {
+        padding: 24px;
+    }
+
+    .wiki-event-logo {
+        width: 72px;
+        height: 72px;
+    }
+
+    .wiki-event-name {
+        font-size: 28px;
+    }
+
+    .wiki-hero-icon {
+        width: 32px;
+        height: 32px;
+    }
+
+    .wiki-content-body {
+        padding: 28px;
+    }
+}
+
+@media (min-width: 768px) {
+    .wiki-root {
+        padding: 32px;
+    }
+
+    .wiki-event-logo {
+        width: 88px;
+        height: 88px;
+    }
+
+    .wiki-event-name {
+        font-size: 32px;
+    }
+
+    .wiki-hero-icon {
+        width: 36px;
+        height: 36px;
+    }
+
+    .wiki-content-body {
+        padding: 32px;
+        font-size: 16px;
+    }
+}

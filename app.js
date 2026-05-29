@@ -644,9 +644,76 @@ function bindStaticUiActions() {
         closeNavigationMenu();
     });
     on('mobileNavGeneratorBtn', 'click', showGeneratorPage);
-    on('mobileNavConfigBtn', 'click', showConfigurationPage);
     on('mobileNavPlayersBtn', 'click', showPlayersManagementPage);
-    on('mobileNavAllianceBtn', 'click', showAlliancePage);
+    on('mobileNavHistoryBtn', 'click', function() {
+        hideAllMainPages();
+        if (window._eventHistoryController && typeof window._eventHistoryController.showEventHistoryView === 'function') {
+            window._eventHistoryController.showEventHistoryView();
+        }
+        var eventHistoryView = document.getElementById('eventHistoryView');
+        if (eventHistoryView) eventHistoryView.classList.remove('hidden');
+        resumePendingOnboardingStep();
+        closeMobileMoreSheet();
+    });
+    on('mobileNavMoreBtn', 'click', toggleMobileMoreSheet);
+
+    // Sidebar navigation (desktop)
+    on('sidebarGeneratorBtn', 'click', showGeneratorPage);
+    on('sidebarPlayersBtn', 'click', showPlayersManagementPage);
+    on('sidebarConfigBtn', 'click', showConfigurationPage);
+    on('sidebarAllianceBtn', 'click', showAlliancePage);
+    on('sidebarSettingsBtn', 'click', openSettingsModal);
+    on('sidebarSupportBtn', 'click', showSupportPage);
+    on('sidebarGameMetadataBtn', 'click', openGameMetadataOverlay);
+    on('sidebarSignOutBtn', 'click', function() { handleSignOut(); });
+    on('sidebarEventHistoryBtn', 'click', function() {
+        hideAllMainPages();
+        if (window._eventHistoryController && typeof window._eventHistoryController.showEventHistoryView === 'function') {
+            window._eventHistoryController.showEventHistoryView();
+        }
+        var eventHistoryView = document.getElementById('eventHistoryView');
+        if (eventHistoryView) eventHistoryView.classList.remove('hidden');
+        resumePendingOnboardingStep();
+    });
+    on('sidebarPlayerUpdatesBtn', 'click', function() {
+        hideAllMainPages();
+        const playerUpdatesReviewView = document.getElementById('playerUpdatesReviewView');
+        if (playerUpdatesReviewView) {
+            var allViewSections = document.querySelectorAll('.view-section');
+            allViewSections.forEach(function(s) { s.classList.add('hidden'); });
+            playerUpdatesReviewView.classList.remove('hidden');
+        }
+        refreshPlayerUpdatesPanel();
+    });
+
+    // Mobile "More" sheet items
+    on('moreSheetConfigBtn', 'click', function() { closeMobileMoreSheet(); showConfigurationPage(); });
+    on('moreSheetAllianceBtn', 'click', function() { closeMobileMoreSheet(); showAlliancePage(); });
+    on('moreSheetEventHistoryBtn', 'click', function() {
+        closeMobileMoreSheet();
+        hideAllMainPages();
+        if (window._eventHistoryController && typeof window._eventHistoryController.showEventHistoryView === 'function') {
+            window._eventHistoryController.showEventHistoryView();
+        }
+        var eventHistoryView = document.getElementById('eventHistoryView');
+        if (eventHistoryView) eventHistoryView.classList.remove('hidden');
+        resumePendingOnboardingStep();
+    });
+    on('moreSheetPlayerUpdatesBtn', 'click', function() {
+        closeMobileMoreSheet();
+        hideAllMainPages();
+        const playerUpdatesReviewView = document.getElementById('playerUpdatesReviewView');
+        if (playerUpdatesReviewView) {
+            var allViewSections = document.querySelectorAll('.view-section');
+            allViewSections.forEach(function(s) { s.classList.add('hidden'); });
+            playerUpdatesReviewView.classList.remove('hidden');
+        }
+        refreshPlayerUpdatesPanel();
+    });
+    on('moreSheetSettingsBtn', 'click', function() { closeMobileMoreSheet(); openSettingsModal(); });
+    on('moreSheetSupportBtn', 'click', function() { closeMobileMoreSheet(); showSupportPage(); });
+    on('moreSheetSignOutBtn', 'click', function() { closeMobileMoreSheet(); handleSignOut(); });
+
     on('navGameMetadataBtn', 'click', openGameMetadataOverlay);
     on('navSettingsBtn', 'click', openSettingsModal);
     on('navSwitchGameBtn', 'click', () => {
@@ -937,6 +1004,12 @@ function bindStaticUiActions() {
             return;
         }
         deleteSelectedEvent();
+    });
+    on('eventWikiBtn', 'click', () => {
+        const controller = getEventsManagerFeatureController();
+        if (controller && typeof controller.openEventWiki === 'function') {
+            controller.openEventWiki();
+        }
     });
 
     on('mapCoordinatesBtn', 'click', () => {
@@ -1433,6 +1506,7 @@ function getEventsManagerFeatureController() {
             cancelEdit: cancelEventEditing,
             deleteEvent: deleteSelectedEvent,
             openCoordinatesPicker: openCoordinatesPickerFromEditor,
+            openEventWiki: function() { window.DSEventsRegistryController.openEventWiki(); },
         });
     }
     return eventsManagerFeatureController;
@@ -1568,6 +1642,31 @@ function toggleNavigationMenu(event) {
     }
 }
 
+function toggleMobileMoreSheet() {
+    var sheet = document.getElementById('mobileMoreSheet');
+    if (!sheet) return;
+    var isOpen = !sheet.classList.contains('hidden');
+    sheet.classList.toggle('hidden', isOpen);
+    var moreBtn = document.getElementById('mobileNavMoreBtn');
+    if (moreBtn) moreBtn.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
+    // Close sheet when clicking scrim
+    if (!isOpen) {
+        sheet.addEventListener('click', function onScrimClick(e) {
+            if (e.target === sheet) {
+                closeMobileMoreSheet();
+                sheet.removeEventListener('click', onScrimClick);
+            }
+        });
+    }
+}
+
+function closeMobileMoreSheet() {
+    var sheet = document.getElementById('mobileMoreSheet');
+    if (sheet) sheet.classList.add('hidden');
+    var moreBtn = document.getElementById('mobileNavMoreBtn');
+    if (moreBtn) moreBtn.setAttribute('aria-expanded', 'false');
+}
+
 function syncNavigationMenuState() {
     if (
         window.DSShellNavigationController
@@ -1582,9 +1681,13 @@ function syncNavigationMenuState() {
                 { view: 'alliance', button: document.getElementById('navAllianceBtn') },
                 { view: 'support', button: document.getElementById('navSupportBtn') },
                 { view: 'generator', button: document.getElementById('mobileNavGeneratorBtn') },
-                { view: 'configuration', button: document.getElementById('mobileNavConfigBtn') },
                 { view: 'players', button: document.getElementById('mobileNavPlayersBtn') },
-                { view: 'alliance', button: document.getElementById('mobileNavAllianceBtn') },
+                // Sidebar buttons
+                { view: 'generator', button: document.getElementById('sidebarGeneratorBtn') },
+                { view: 'players', button: document.getElementById('sidebarPlayersBtn') },
+                { view: 'configuration', button: document.getElementById('sidebarConfigBtn') },
+                { view: 'alliance', button: document.getElementById('sidebarAllianceBtn') },
+                { view: 'support', button: document.getElementById('sidebarSupportBtn') },
             ],
         });
         return;

@@ -62,51 +62,104 @@
 
     <!-- Main App -->
     <main id="mainApp">
+        <!-- Desktop Sidebar Navigation -->
+        <nav id="appSidebar" class="app-sidebar" aria-label="Main Navigation">
+            <div class="sidebar-group">
+                <div class="sidebar-group-label" data-i18n="nav_group_views">Workspace</div>
+                <button id="sidebarGeneratorBtn" class="sidebar-nav-item active" type="button" aria-current="page">
+                    <svg class="sidebar-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/><circle cx="12" cy="12" r="8"/></svg>
+                    <span class="sidebar-label" data-i18n="generator_button">Generator</span>
+                </button>
+                <button id="sidebarPlayersBtn" class="sidebar-nav-item" type="button">
+                    <svg class="sidebar-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8.5" r="3"/><path d="M3.5 18.5c0-2.9 2.4-5.2 5.5-5.2s5.5 2.3 5.5 5.2"/><circle cx="17.5" cy="9.5" r="2.2"/><path d="M14.8 18.5c.2-2.1 1.8-3.8 3.9-4.1"/></svg>
+                    <span class="sidebar-label" data-i18n="players_management_button">Players</span>
+                </button>
+                <button id="sidebarEventHistoryBtn" class="sidebar-nav-item" type="button">
+                    <svg class="sidebar-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <span class="sidebar-label" data-i18n="event_history_nav">History</span>
+                    <span id="sidebarHistoryBadge" class="sidebar-badge hidden" aria-label="Pending attendance">0</span>
+                </button>
+            </div>
+            <div class="sidebar-divider"></div>
+            <div class="sidebar-group">
+                <div class="sidebar-group-label" data-i18n="nav_group_data">Configure</div>
+                <button id="sidebarConfigBtn" class="sidebar-nav-item" type="button">
+                    <svg class="sidebar-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2.2"/><path d="M8 3.8v2.4M16 3.8v2.4M4 10h16"/><path d="M8 14h3M13 14h3"/></svg>
+                    <span class="sidebar-label" data-i18n="events_manager_title">Events</span>
+                </button>
+                <button id="sidebarAllianceBtn" class="sidebar-nav-item" type="button">
+                    <svg class="sidebar-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.2 7.8a2.8 2.8 0 1 1 5.6 0c0 1.5-1.3 2.8-2.8 2.8S7.2 9.3 7.2 7.8Z"/><path d="M11 14.2h2"/><path d="M4.2 18.5c0-2.8 2.3-5 5.2-5"/><path d="M19.8 18.5c0-2.8-2.3-5-5.2-5"/><path d="M14.8 7.1h4.4M17 4.9v4.4"/></svg>
+                    <span class="sidebar-label" data-i18n="alliance_button">Alliance</span>
+                </button>
+                <button id="sidebarPlayerUpdatesBtn" class="sidebar-nav-item" type="button">
+                    <svg class="sidebar-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                    <span class="sidebar-label" data-i18n="player_updates_review_nav">Updates</span>
+                    <span id="sidebarUpdatesBadge" class="sidebar-badge hidden" aria-label="Pending updates">0</span>
+                </button>
+            </div>
+            <div class="sidebar-spacer"></div>
+            <div class="sidebar-group sidebar-bottom">
+                <button id="sidebarGameMetadataBtn" class="sidebar-nav-item hidden" type="button">
+                    <svg class="sidebar-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                    <span class="sidebar-label" data-i18n="game_metadata_admin_menu">Game Admin</span>
+                </button>
+                <button id="sidebarSettingsBtn" class="sidebar-nav-item" type="button">
+                    <svg class="sidebar-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                    <span class="sidebar-label" data-i18n="settings_button">Settings</span>
+                </button>
+                <button id="sidebarSupportBtn" class="sidebar-nav-item" type="button">
+                    <svg class="sidebar-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v.01"/><path d="M12 8a2.5 2.5 0 0 1 2.1 3.9c-.8 1.1-2.1 1.5-2.1 2.6"/></svg>
+                    <span class="sidebar-label" data-i18n="support_button">Support</span>
+                </button>
+                <div class="sidebar-divider"></div>
+                <button id="sidebarSignOutBtn" class="sidebar-nav-item sidebar-nav-item--danger" type="button">
+                    <svg class="sidebar-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    <span class="sidebar-label" data-i18n="sign_out_button">Sign Out</span>
+                </button>
+            </div>
+        </nav>
+
+        <!-- Mobile "More" Sheet -->
+        <div id="mobileMoreSheet" class="mobile-more-sheet hidden" role="dialog" aria-label="More options">
+            <div class="mobile-more-sheet-content">
+                <button id="moreSheetConfigBtn" class="mobile-more-item" type="button">
+                    <svg class="mobile-more-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="15" rx="2.2"/><path d="M8 3.8v2.4M16 3.8v2.4M4 10h16"/></svg>
+                    <span data-i18n="events_manager_title">Events Manager</span>
+                </button>
+                <button id="moreSheetAllianceBtn" class="mobile-more-item" type="button">
+                    <svg class="mobile-more-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7.2 7.8a2.8 2.8 0 1 1 5.6 0c0 1.5-1.3 2.8-2.8 2.8S7.2 9.3 7.2 7.8Z"/><path d="M11 14.2h2"/><path d="M4.2 18.5c0-2.8 2.3-5 5.2-5"/><path d="M19.8 18.5c0-2.8-2.3-5-5.2-5"/></svg>
+                    <span data-i18n="alliance_button">Alliance</span>
+                </button>
+                <button id="moreSheetEventHistoryBtn" class="mobile-more-item" type="button">
+                    <svg class="mobile-more-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <span data-i18n="event_history_nav">Event History</span>
+                    <span id="moreSheetHistoryBadge" class="sidebar-badge hidden">0</span>
+                </button>
+                <button id="moreSheetPlayerUpdatesBtn" class="mobile-more-item" type="button">
+                    <svg class="mobile-more-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                    <span data-i18n="player_updates_review_nav">Pending Updates</span>
+                    <span id="moreSheetUpdatesBadge" class="sidebar-badge hidden">0</span>
+                </button>
+                <div class="mobile-more-divider"></div>
+                <button id="moreSheetSettingsBtn" class="mobile-more-item" type="button">
+                    <svg class="mobile-more-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                    <span data-i18n="settings_button">Settings</span>
+                </button>
+                <button id="moreSheetSupportBtn" class="mobile-more-item" type="button">
+                    <svg class="mobile-more-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v.01"/><path d="M12 8a2.5 2.5 0 0 1 2.1 3.9c-.8 1.1-2.1 1.5-2.1 2.6"/></svg>
+                    <span data-i18n="support_button">Support</span>
+                </button>
+                <button id="moreSheetSignOutBtn" class="mobile-more-item mobile-more-item--danger" type="button">
+                    <svg class="mobile-more-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    <span data-i18n="sign_out_button">Sign Out</span>
+                </button>
+            </div>
+        </div>
+
         <!-- User Header -->
         <header id="userHeader">
             <div id="userHeaderTop">
                 <div id="headerLeft">
-                    <nav id="navMenu" class="header-menu" aria-label="Primary">
-                        <button id="navMenuBtn" class="secondary header-icon-btn" title="Menu" aria-label="Menu" aria-haspopup="menu" aria-expanded="false" aria-controls="navMenuPanel">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
-                            <span class="btn-label" data-i18n="navigation_menu">Menu</span>
-                        </button>
-                        <div id="navMenuPanel" class="header-menu-panel hidden" role="menu" aria-label="Menu">
-                            <div class="header-menu-group-label" data-i18n="nav_group_views">Views</div>
-                            <button id="navGeneratorBtn" class="header-menu-item" role="menuitem"><span data-i18n="generator_button">Generator</span></button>
-                            <button id="navPlayersBtn" class="header-menu-item" role="menuitem"><span data-i18n="players_management_button">Players Management</span></button>
-                            <button id="navConfigBtn" class="header-menu-item" role="menuitem"><span data-i18n="events_manager_title">Events Manager</span></button>
-                            <div class="header-menu-divider"></div>
-                            <div class="header-menu-group-label" data-i18n="nav_group_data">Data</div>
-                            <button id="navAllianceBtn" class="header-menu-item" role="menuitem"><span data-i18n="alliance_button">Alliance</span></button>
-                            <button id="navEventHistoryBtn" class="header-menu-item" role="menuitem">
-                                <span data-i18n="event_history_nav">Event History</span>
-                                <span id="eventHistoryPendingBadge" class="nav-badge hidden" aria-label="Pending attendance">0</span>
-                            </button>
-                            <button id="navPlayerUpdatesBtn" class="header-menu-item" role="menuitem">
-                                <span data-i18n="player_updates_review_nav">Pending Updates</span>
-                                <span id="playerUpdatesPendingBadge" class="nav-badge hidden" aria-label="Pending updates">0</span>
-                            </button>
-                            <button id="navGameMetadataBtn" class="header-menu-item hidden" role="menuitem"><span data-i18n="game_metadata_admin_menu">Game Metadata Admin</span></button>
-                            <div class="header-menu-divider"></div>
-                            <div class="header-menu-group-label" data-i18n="nav_group_account">Account</div>
-                            <button id="navSettingsBtn" class="header-menu-item" role="menuitem"><span data-i18n="settings_button">Settings</span></button>
-                            <button id="navSwitchGameBtn" class="header-menu-item" role="menuitem"><span data-i18n="game_switch_button">Switch Game</span></button>
-                            <div class="header-menu-divider"></div>
-                            <button id="navSupportBtn" class="header-menu-item" role="menuitem">
-                                <span class="header-menu-item-icon" aria-hidden="true">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v.01"/><path d="M12 8a2.5 2.5 0 0 1 2.1 3.9c-.8 1.1-2.1 1.5-2.1 2.6"/></svg>
-                                </span>
-                                <span data-i18n="support_button">Support</span>
-                            </button>
-                            <button id="navSignOutBtn" class="header-menu-item danger" role="menuitem">
-                                <span class="header-menu-item-icon" aria-hidden="true">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-                                </span>
-                                <span data-i18n="sign_out_button">Sign Out</span>
-                            </button>
-                        </div>
-                    </nav>
                 </div>
 
                 <div id="headerActions">
@@ -495,22 +548,34 @@
             <div id="generatorPage" class="app-view">
                 <!-- Player Selection Section -->
                 <div id="selectionSection" class="card screen-panel hidden">
-                    <div class="assignment-algorithm-controls">
-                        <span class="assignment-algorithm-label" data-i18n="assignment_algorithm_label">Assignment Algorithm</span>
-                        <fieldset class="assignment-algorithm-group" aria-describedby="assignmentAlgorithmHelp">
-                            <legend class="sr-only" data-i18n="assignment_algorithm_label">Assignment Algorithm</legend>
-                            <label class="assignment-algorithm-option" for="assignmentAlgorithmBalanced">
-                                <input type="radio" id="assignmentAlgorithmBalanced" name="assignmentAlgorithm" value="balanced" checked>
-                                <span class="assignment-algorithm-option-text" data-i18n="assignment_algorithm_balanced">Balanced (Recommended)</span>
-                            </label>
-                            <label class="assignment-algorithm-option" for="assignmentAlgorithmAggressive">
-                                <input type="radio" id="assignmentAlgorithmAggressive" name="assignmentAlgorithm" value="aggressive">
-                                <span class="assignment-algorithm-option-text" data-i18n="assignment_algorithm_aggressive">Aggressive</span>
-                            </label>
-                        </fieldset>
-                        <p id="assignmentAlgorithmHelp" class="assignment-algorithm-help" data-i18n="assignment_algorithm_help">Balanced keeps troop-mix-aware pairing. Aggressive fills Team-type buildings first using top power/THP players, then fills Building-type rows by priority with remaining players.</p>
-                    </div>
-                    <div class="event-selector event-selector-inline" id="selectionEventSelector"></div>
+                    <!-- Collapsible Event Configuration Bar -->
+                    <details id="generatorConfigDetails" class="generator-config-details">
+                        <summary class="generator-config-summary">
+                            <span class="generator-config-summary-text">
+                                <span class="generator-config-event-name" id="generatorConfigEventName" data-i18n="select_players_for_event_title">Select players for the event</span>
+                                <span class="generator-config-meta" id="generatorConfigMeta"></span>
+                            </span>
+                            <svg class="generator-config-chevron" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                        </summary>
+                        <div class="generator-config-body">
+                            <div class="event-selector event-selector-inline" id="selectionEventSelector"></div>
+                            <div class="assignment-algorithm-controls">
+                                <span class="assignment-algorithm-label" data-i18n="assignment_algorithm_label">Assignment Algorithm</span>
+                                <fieldset class="assignment-algorithm-group" aria-describedby="assignmentAlgorithmHelp">
+                                    <legend class="sr-only" data-i18n="assignment_algorithm_label">Assignment Algorithm</legend>
+                                    <label class="assignment-algorithm-option" for="assignmentAlgorithmBalanced">
+                                        <input type="radio" id="assignmentAlgorithmBalanced" name="assignmentAlgorithm" value="balanced" checked>
+                                        <span class="assignment-algorithm-option-text" data-i18n="assignment_algorithm_balanced">Balanced (Recommended)</span>
+                                    </label>
+                                    <label class="assignment-algorithm-option" for="assignmentAlgorithmAggressive">
+                                        <input type="radio" id="assignmentAlgorithmAggressive" name="assignmentAlgorithm" value="aggressive">
+                                        <span class="assignment-algorithm-option-text" data-i18n="assignment_algorithm_aggressive">Aggressive</span>
+                                    </label>
+                                </fieldset>
+                                <p id="assignmentAlgorithmHelp" class="assignment-algorithm-help" data-i18n="assignment_algorithm_help">Balanced keeps troop-mix-aware pairing. Aggressive fills Team-type buildings first using top power/THP players, then fills Building-type rows by priority with remaining players.</p>
+                            </div>
+                        </div>
+                    </details>
                     <div class="screen-header">
                         <h2 class="section-title" data-i18n="select_players_for_event_title">Select players for the event</h2>
                     </div>
@@ -806,6 +871,8 @@
                                 <label for="eventAssignmentAlgorithmInput" data-i18n="events_manager_algorithm_label">Assignment Algorithm</label>
                                 <select id="eventAssignmentAlgorithmInput" aria-label="Assignment Algorithm"></select>
                             </div>
+                            <details class="event-editor-section" open>
+                                <summary class="event-editor-section-summary" data-i18n="events_manager_media_section">Media</summary>
                             <div class="event-media-grid">
                                 <div class="event-media-block">
                                     <div class="event-media-label" data-i18n="events_manager_logo_label">Event Avatar</div>
@@ -843,8 +910,9 @@
                                     <input id="eventMapInput" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp">
                                 </div>
                             </div>
-                            <div class="event-buildings-block">
-                                <h4 class="event-buildings-title" data-i18n="events_manager_buildings_title">Buildings</h4>
+                            </details>
+                            <details class="event-editor-section" open>
+                                <summary class="event-editor-section-summary" data-i18n="events_manager_buildings_title">Buildings</summary>
                                 <p class="event-buildings-help" data-i18n="events_manager_buildings_help">Define building name, #Players, and priority for this event.</p>
                                 <div class="responsive-table-wrap">
                                     <table class="players-table responsive-table-card" id="eventBuildingsEditorTable">
@@ -871,10 +939,11 @@
                                         <span class="sr-only" data-i18n="events_manager_add_building">Add Building</span>
                                     </button>
                                 </div>
-                            </div>
+                            </details>
                             <div class="event-editor-actions">
                                 <button id="eventSaveBtn" type="button" title="Save event" aria-label="Save event"><span class="action-btn-text" data-i18n="events_manager_save_event">Save Event</span><span class="action-btn-icon" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3,1h8l4,4v8a2,2 0 0 1-2,2H3a2,2 0 0 1-2,-2V3a2,2 0 0 1 2,-2z"/><rect x="5" y="1" width="6" height="5" rx="0.5"/><rect x="4" y="9" width="8" height="4" rx="1"/></svg></span></button>
                                 <button id="eventCancelEditBtn" class="secondary hidden" type="button" title="Cancel editing" aria-label="Cancel editing"><span class="action-btn-text" data-i18n="settings_cancel">Cancel</span><span class="action-btn-icon" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="3" x2="13" y2="13"/><line x1="13" y1="3" x2="3" y2="13"/></svg></span></button>
+                                <button id="eventWikiBtn" class="secondary hidden" type="button" title="Edit Wiki" aria-label="Edit Wiki"><span class="action-btn-text" data-i18n="events_manager_wiki_btn">Wiki</span><span class="action-btn-icon" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h12a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M4 6h8"/><path d="M4 9h5"/></svg></span></button>
                                 <button id="eventDeleteBtn" class="secondary" type="button" title="Delete event" aria-label="Delete event"><span class="action-btn-text" data-i18n="events_manager_delete_event">Delete Event</span><span class="action-btn-icon" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2,4h12"/><path d="M5,4V2h6v2"/><path d="M4,4l1,10h6l1,-10"/><line x1="7" y1="7" x2="7" y2="12"/><line x1="9" y1="7" x2="9" y2="12"/></svg></span></button>
                             </div>
                             <div id="eventsStatus"></div>
@@ -934,25 +1003,22 @@
                     <circle cx="17.5" cy="9.5" r="2.2"></circle>
                     <path d="M14.8 18.5c.2-2.1 1.8-3.8 3.9-4.1"></path>
                 </svg>
-                <span class="mobile-bottom-nav-label" data-i18n="players_management_button">Players Management</span>
+                <span class="mobile-bottom-nav-label" data-i18n="players_management_button">Players</span>
             </button>
-            <button id="mobileNavConfigBtn" class="mobile-bottom-nav-btn" type="button">
+            <button id="mobileNavHistoryBtn" class="mobile-bottom-nav-btn" type="button">
                 <svg class="mobile-bottom-nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <rect x="4" y="5" width="16" height="15" rx="2.2"></rect>
-                    <path d="M8 3.8v2.4M16 3.8v2.4M4 10h16"></path>
-                    <path d="M8 14h3M13 14h3"></path>
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
                 </svg>
-                <span class="mobile-bottom-nav-label" data-i18n="events_manager_title">Events Manager</span>
+                <span class="mobile-bottom-nav-label" data-i18n="event_history_nav">History</span>
             </button>
-            <button id="mobileNavAllianceBtn" class="mobile-bottom-nav-btn" type="button">
+            <button id="mobileNavMoreBtn" class="mobile-bottom-nav-btn" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="mobileMoreSheet">
                 <svg class="mobile-bottom-nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M7.2 7.8a2.8 2.8 0 1 1 5.6 0c0 1.5-1.3 2.8-2.8 2.8S7.2 9.3 7.2 7.8Z"></path>
-                    <path d="M11 14.2h2"></path>
-                    <path d="M4.2 18.5c0-2.8 2.3-5 5.2-5"></path>
-                    <path d="M19.8 18.5c0-2.8-2.3-5-5.2-5"></path>
-                    <path d="M14.8 7.1h4.4M17 4.9v4.4"></path>
+                    <circle cx="12" cy="5" r="1.5"></circle>
+                    <circle cx="12" cy="12" r="1.5"></circle>
+                    <circle cx="12" cy="19" r="1.5"></circle>
                 </svg>
-                <span class="mobile-bottom-nav-label" data-i18n="alliance_button">Alliance</span>
+                <span class="mobile-bottom-nav-label" data-i18n="nav_more">More</span>
             </button>
             <div id="mobileGenButtons" class="mobile-gen-buttons" role="group" aria-label="Generate teams">
                 <button class="mobile-gen-btn mobile-gen-btn-a" id="mobileGenBtnA" type="button" disabled aria-label="Generate Team A">

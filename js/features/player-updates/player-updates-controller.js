@@ -60,9 +60,12 @@
         if (!_gateway || typeof _gateway.subscribePendingUpdatesCount !== 'function') return;
         if (!allianceId && !uid) return;
         _badgeUnsub = _gateway.subscribePendingUpdatesCount(allianceId, uid, function(count) {
-            var badge = document.getElementById('playerUpdatesPendingBadge');
-            if (global.DSFeaturePlayerUpdatesView && typeof global.DSFeaturePlayerUpdatesView.renderPendingBadge === 'function') {
-                global.DSFeaturePlayerUpdatesView.renderPendingBadge(badge, count);
+            var renderBadge = global.DSFeaturePlayerUpdatesView && typeof global.DSFeaturePlayerUpdatesView.renderPendingBadge === 'function'
+                ? global.DSFeaturePlayerUpdatesView.renderPendingBadge : null;
+            if (renderBadge) {
+                renderBadge(document.getElementById('playerUpdatesPendingBadge'), count);
+                renderBadge(document.getElementById('sidebarUpdatesBadge'), count);
+                renderBadge(document.getElementById('moreSheetUpdatesBadge'), count);
             }
         });
     }
