@@ -569,7 +569,16 @@ const translations = {
         freshness_dot_fresh: 'Updated recently',
         freshness_dot_stale: 'Not updated in over 30 days',
         freshness_dot_very_stale: 'Not updated in over 90 days',
-        freshness_dot_never: 'Never updated via self-update'
+        freshness_dot_never: 'Never updated via self-update',
+        hints_title: 'Did You Know?',
+        hints_skip: 'Skip',
+        hints_got_it: 'Got It',
+        hint_mass_invite_title: 'Invite Players to Update',
+        hint_mass_invite_description: 'Generate update tokens and share them with your team. Players can update their power, troops, and notes from a simple link — no Firebase login needed!',
+        hint_team_colors_title: 'Team Colors Are Customizable',
+        hint_team_colors_description: 'Edit team colors in Settings to match your alliance branding. Changes apply to team counters, badges, and assignment cards.',
+        hint_building_assign_title: 'Buildings Assign Automatically',
+        hint_building_assign_description: 'When you generate teams, players are assigned to buildings based on their power and troop count. Reorder buildings to change assignment priority.'
     },
     fr: {
         app_title: 'Video Games Events Players Selection',
@@ -1137,7 +1146,16 @@ const translations = {
         freshness_dot_fresh: 'Mis a jour recemment',
         freshness_dot_stale: 'Pas mis a jour depuis plus de 30 jours',
         freshness_dot_very_stale: 'Pas mis a jour depuis plus de 90 jours',
-        freshness_dot_never: 'Jamais mis a jour via auto-mise a jour'
+        freshness_dot_never: 'Jamais mis a jour via auto-mise a jour',
+        hints_title: 'Le Saviez-vous ?',
+        hints_skip: 'Passer',
+        hints_got_it: 'Compris',
+        hint_mass_invite_title: 'Inviter les joueurs à mettre à jour',
+        hint_mass_invite_description: 'Générez des jetons de mise à jour et partagez-les avec votre équipe. Les joueurs peuvent mettre à jour leur puissance, troupes et notes via un simple lien — aucune connexion Firebase requise !',
+        hint_team_colors_title: 'Les couleurs des équipes sont personnalisables',
+        hint_team_colors_description: 'Modifiez les couleurs des équipes dans Paramètres pour correspondre à votre marque d\'alliance. Les modifications s\'appliquent aux compteurs, badges et cartes d\'attribution.',
+        hint_building_assign_title: 'L\'attribution des bâtiments est automatique',
+        hint_building_assign_description: 'Lors de la génération d\'équipes, les joueurs sont attribués aux bâtiments en fonction de leur puissance et de leur nombre de troupes. Réorganisez les bâtiments pour modifier la priorité d\'attribution.'
     },
     de: {
         app_title: 'Video Games Events Players Selection',
@@ -1705,7 +1723,16 @@ const translations = {
         freshness_dot_fresh: 'Kuerzlich aktualisiert',
         freshness_dot_stale: 'Seit mehr als 30 Tagen nicht aktualisiert',
         freshness_dot_very_stale: 'Seit mehr als 90 Tagen nicht aktualisiert',
-        freshness_dot_never: 'Noch nie per Selbst-Update aktualisiert'
+        freshness_dot_never: 'Noch nie per Selbst-Update aktualisiert',
+        hints_title: 'Wussten Sie schon?',
+        hints_skip: 'Überspringen',
+        hints_got_it: 'Verstanden',
+        hint_mass_invite_title: 'Spieler zum Aktualisieren einladen',
+        hint_mass_invite_description: 'Generieren Sie Update-Token und teilen Sie diese mit Ihrem Team. Spieler können ihre Kraft, Truppen und Notizen über einen einfachen Link aktualisieren – kein Firebase-Login erforderlich!',
+        hint_team_colors_title: 'Teamfarben sind anpassbar',
+        hint_team_colors_description: 'Bearbeiten Sie Teamfarben in den Einstellungen, um Ihr Allianz-Branding anzupassen. Änderungen gelten für Zähler, Abzeichen und Zuordnungskarten.',
+        hint_building_assign_title: 'Gebäudezuordnung erfolgt automatisch',
+        hint_building_assign_description: 'Bei der Teamgenerierung werden Spieler basierend auf ihrer Kraft und Truppenzahl Gebäuden zugeordnet. Ordnen Sie Gebäude neu an, um die Zuordnungspriorität zu ändern.'
     },
     it: {
         app_title: 'Video Games Events Players Selection',
@@ -2273,7 +2300,16 @@ const translations = {
         freshness_dot_fresh: 'Aggiornato di recente',
         freshness_dot_stale: 'Non aggiornato da piu di 30 giorni',
         freshness_dot_very_stale: 'Non aggiornato da piu di 90 giorni',
-        freshness_dot_never: 'Mai aggiornato tramite auto-aggiornamento'
+        freshness_dot_never: 'Mai aggiornato tramite auto-aggiornamento',
+        hints_title: 'Lo sapevi?',
+        hints_skip: 'Salta',
+        hints_got_it: 'Capito',
+        hint_mass_invite_title: 'Invita i giocatori ad aggiornare',
+        hint_mass_invite_description: 'Genera token di aggiornamento e condividili con il tuo team. I giocatori possono aggiornare la loro potenza, truppe e note tramite un semplice link — nessun accesso Firebase richiesto!',
+        hint_team_colors_title: 'I colori del team sono personalizzabili',
+        hint_team_colors_description: 'Modifica i colori del team in Impostazioni per abbinare il tuo marchio di alleanza. I cambiamenti si applicano ai contatori, ai badge e alle schede di assegnazione.',
+        hint_building_assign_title: 'L\'assegnazione degli edifici è automatica',
+        hint_building_assign_description: 'Durante la generazione dei team, i giocatori vengono assegnati agli edifici in base alla loro potenza e numero di truppe. Riordina gli edifici per modificare la priorità di assegnazione.'
     },
     ko: {
         app_title: 'Video Games Events Players Selection',
@@ -2841,7 +2877,16 @@ const translations = {
         freshness_dot_fresh: '최근에 업데이트됨',
         freshness_dot_stale: '30일 이상 업데이트되지 않음',
         freshness_dot_very_stale: '90일 이상 업데이트되지 않음',
-        freshness_dot_never: '자가 업데이트로 업데이트된 적 없음'
+        freshness_dot_never: '자가 업데이트로 업데이트된 적 없음',
+        hints_title: '알고 계셨나요?',
+        hints_skip: '건너뛰기',
+        hints_got_it: '알겠습니다',
+        hint_mass_invite_title: '플레이어에게 업데이트 초대',
+        hint_mass_invite_description: '업데이트 토큰을 생성하고 팀과 공유하세요. 플레이어는 간단한 링크를 통해 전력, 군대 및 메모를 업데이트할 수 있습니다. Firebase 로그인이 필요하지 않습니다!',
+        hint_team_colors_title: '팀 색상을 사용자 정의할 수 있습니다',
+        hint_team_colors_description: '설정에서 팀 색상을 편집하여 얼라이언스 브랜딩과 일치하도록 하세요. 변경 사항은 팀 카운터, 배지 및 할당 카드에 적용됩니다.',
+        hint_building_assign_title: '건물 할당은 자동입니다',
+        hint_building_assign_description: '팀을 생성할 때 플레이어는 전력과 군대 수에 따라 건물에 할당됩니다. 할당 우선순위를 변경하려면 건물을 다시 정렬하세요.'
     },
     ro: {
         app_title: 'Video Games Events Players Selection',
@@ -3409,7 +3454,16 @@ const translations = {
         freshness_dot_fresh: 'Actualizat recent',
         freshness_dot_stale: 'Neactualizat de peste 30 de zile',
         freshness_dot_very_stale: 'Neactualizat de peste 90 de zile',
-        freshness_dot_never: 'Niciodata actualizat prin auto-actualizare'
+        freshness_dot_never: 'Niciodata actualizat prin auto-actualizare',
+        hints_title: 'Știai asta?',
+        hints_skip: 'Omite',
+        hints_got_it: 'Am înțeles',
+        hint_mass_invite_title: 'Invită jucătorii să se actualizeze',
+        hint_mass_invite_description: 'Generează tokenuri de actualizare și distribuie-le echipei tale. Jucătorii pot actualiza puterea, armatele și notele prin simplu link — nu este necesară autentificarea Firebase!',
+        hint_team_colors_title: 'Culorile echipei pot fi personalizate',
+        hint_team_colors_description: 'Editează culorile echipei în Setări pentru a se potrivi cu branding-ul alianței. Modificările se aplică contoarelor echipei, badge-urilor și cardurilor de atribuire.',
+        hint_building_assign_title: 'Atribuirea clădirilor este automată',
+        hint_building_assign_description: 'Atunci când generezi echipe, jucătorii sunt atribuiți clădirilor în funcție de puterea și numărul de armate. Reordonează clădirile pentru a schimba prioritatea de atribuire.'
     }
 };
 
