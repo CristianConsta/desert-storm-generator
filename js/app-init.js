@@ -62,6 +62,42 @@
 
         cacheStartupFeatureFlags();
 
+        function showHintsAfterLogin() {
+            var controller = global.DSHintsController;
+            if (!controller) {
+                return;
+            }
+            var onboardingComplete = false;
+            try {
+                onboardingComplete = global.localStorage.getItem('ds_onboarding_done') === '1';
+            } catch (_e) {
+                // localStorage unavailable
+            }
+            if (!controller.shouldShowHints(onboardingComplete)) {
+                return;
+            }
+            var hint = controller.selectNextHint(controller.HINTS, controller.getViewedHints());
+            if (!hint) {
+                return;
+            }
+            var titleEl = document.getElementById('hintTitleEl');
+            var descEl = document.getElementById('hintDescEl');
+            if (titleEl) {
+                titleEl.setAttribute('data-i18n', hint.messageKey);
+            }
+            if (descEl) {
+                descEl.setAttribute('data-i18n', hint.descriptionKey);
+            }
+            if (global.DSI18N && typeof global.DSI18N.applyTranslations === 'function') {
+                global.DSI18N.applyTranslations();
+            }
+            controller.markHintAsViewed(hint.id);
+            controller.markHintsShownThisSession();
+            if (global.DSShellModalController && typeof global.DSShellModalController.open === 'function') {
+                global.DSShellModalController.open({ overlay: '#hintsModal' });
+            }
+        }
+
         FirebaseService.setAuthCallback((isSignedIn, user) => {
             if (isSignedIn) {
                 const activeGameId = syncSignedInGameContext({ allowDefault: false });
@@ -78,6 +114,7 @@
                     global.showPostAuthGameSelector();
                 }
                 initOnboarding();
+                setTimeout(showHintsAfterLogin, 1000);
                 if (
                     global.getNotificationsFeatureController
                     && typeof global.getNotificationsFeatureController === 'function'

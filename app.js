@@ -987,6 +987,16 @@ function bindStaticUiActions() {
     on('supportReportBugBtn', 'click', () => openSupportIssueComposer('bug'));
     on('supportRequestFeatureBtn', 'click', () => openSupportIssueComposer('feature'));
 
+    function closeHintsModal() {
+        const overlay = document.getElementById('hintsModal');
+        if (overlay) {
+            closeModalOverlay(overlay);
+        }
+    }
+    on('hintsCloseBtn', 'click', closeHintsModal);
+    on('hintsSkipBtn', 'click', closeHintsModal);
+    on('hintsGotItBtn', 'click', closeHintsModal);
+
     syncAssignmentAlgorithmControl();
     updateClearAllButtonVisibility();
 }

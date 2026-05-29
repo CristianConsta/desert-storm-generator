@@ -73,5 +73,6 @@ require('./shell/theme-controller.js');
 require('./shell/auth-ui-controller.js');
 require('./shell/game-metadata-admin-controller.js');
 require('./shell/game-selector-controller.js');
+require('./shell/hints-controller.js');
 require('../app.js');
 require('./app-init.js');
