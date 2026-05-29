@@ -4613,6 +4613,59 @@ button.btn-confirm-pending {
     }
 }
 
+/* Hints modal */
+#hintsModal .modal-content {
+  max-width: 420px;
+}
+
+#hintsModal .modal-header {
+  border-bottom: 1px solid var(--ds-border-default);
+  padding-bottom: 12px;
+}
+
+#hintsModal .modal-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--ds-text-primary);
+}
+
+#hintsContent {
+  padding: 16px 0;
+}
+
+#hintsContent h3 {
+  margin: 0 0 8px 0;
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: var(--ds-text-primary);
+}
+
+#hintsContent p {
+  margin: 0;
+  color: var(--ds-text-muted);
+  line-height: 1.5;
+  font-size: 0.95rem;
+}
+
+#hintsModal .modal-footer {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  border-top: 1px solid var(--ds-border-default);
+  padding-top: 12px;
+}
+
+#hintsModal .btn-secondary {
+  background: transparent;
+  color: var(--ds-text-primary);
+  border: 1px solid var(--ds-border-default);
+}
+
+#hintsModal .btn-secondary:hover {
+  background: var(--ds-surface-hover);
+}
+
 /* Token generation modal */
 .token-link-row {
     display: flex;
