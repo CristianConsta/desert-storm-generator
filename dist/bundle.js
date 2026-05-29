@@ -813,7 +813,7 @@
   // firebase-module.js
   var require_firebase_module = __commonJS({
     "firebase-module.js"() {
-      var FirebaseManager = function() {
+      var FirebaseManager = (function() {
         var DSFirebaseInfra = typeof window !== "undefined" && window.DSFirebaseInfra || typeof global !== "undefined" && global.DSFirebaseInfra;
         var DSFirebaseAuth = typeof window !== "undefined" && window.DSFirebaseAuth || typeof global !== "undefined" && global.DSFirebaseAuth;
         let firebaseConfig = null;
@@ -7068,7 +7068,7 @@
           getGameAllianceSharedUpdateInviteCandidatesCollectionRef,
           GAME_CENTRIC_MIGRATION_VERSION
         };
-      }();
+      })();
       if (typeof window !== "undefined") {
         window.FirebaseManager = FirebaseManager;
       }
@@ -7654,7 +7654,16 @@
           freshness_dot_fresh: "Updated recently",
           freshness_dot_stale: "Not updated in over 30 days",
           freshness_dot_very_stale: "Not updated in over 90 days",
-          freshness_dot_never: "Never updated via self-update"
+          freshness_dot_never: "Never updated via self-update",
+          hints_title: "Did You Know?",
+          hints_skip: "Skip",
+          hints_got_it: "Got It",
+          hint_mass_invite_title: "Invite Players to Update",
+          hint_mass_invite_description: "Generate update tokens and share them with your team. Players can update their power, troops, and notes from a simple link \u2014 no Firebase login needed!",
+          hint_team_colors_title: "Team Colors Are Customizable",
+          hint_team_colors_description: "Edit team colors in Settings to match your alliance branding. Changes apply to team counters, badges, and assignment cards.",
+          hint_building_assign_title: "Buildings Assign Automatically",
+          hint_building_assign_description: "When you generate teams, players are assigned to buildings based on their power and troop count. Reorder buildings to change assignment priority."
         },
         fr: {
           app_title: "Video Games Events Players Selection",
@@ -8222,7 +8231,16 @@
           freshness_dot_fresh: "Mis a jour recemment",
           freshness_dot_stale: "Pas mis a jour depuis plus de 30 jours",
           freshness_dot_very_stale: "Pas mis a jour depuis plus de 90 jours",
-          freshness_dot_never: "Jamais mis a jour via auto-mise a jour"
+          freshness_dot_never: "Jamais mis a jour via auto-mise a jour",
+          hints_title: "Le Saviez-vous ?",
+          hints_skip: "Passer",
+          hints_got_it: "Compris",
+          hint_mass_invite_title: "Inviter les joueurs \xE0 mettre \xE0 jour",
+          hint_mass_invite_description: "G\xE9n\xE9rez des jetons de mise \xE0 jour et partagez-les avec votre \xE9quipe. Les joueurs peuvent mettre \xE0 jour leur puissance, troupes et notes via un simple lien \u2014 aucune connexion Firebase requise !",
+          hint_team_colors_title: "Les couleurs des \xE9quipes sont personnalisables",
+          hint_team_colors_description: "Modifiez les couleurs des \xE9quipes dans Param\xE8tres pour correspondre \xE0 votre marque d'alliance. Les modifications s'appliquent aux compteurs, badges et cartes d'attribution.",
+          hint_building_assign_title: "L'attribution des b\xE2timents est automatique",
+          hint_building_assign_description: "Lors de la g\xE9n\xE9ration d'\xE9quipes, les joueurs sont attribu\xE9s aux b\xE2timents en fonction de leur puissance et de leur nombre de troupes. R\xE9organisez les b\xE2timents pour modifier la priorit\xE9 d'attribution."
         },
         de: {
           app_title: "Video Games Events Players Selection",
@@ -8790,7 +8808,16 @@
           freshness_dot_fresh: "Kuerzlich aktualisiert",
           freshness_dot_stale: "Seit mehr als 30 Tagen nicht aktualisiert",
           freshness_dot_very_stale: "Seit mehr als 90 Tagen nicht aktualisiert",
-          freshness_dot_never: "Noch nie per Selbst-Update aktualisiert"
+          freshness_dot_never: "Noch nie per Selbst-Update aktualisiert",
+          hints_title: "Wussten Sie schon?",
+          hints_skip: "\xDCberspringen",
+          hints_got_it: "Verstanden",
+          hint_mass_invite_title: "Spieler zum Aktualisieren einladen",
+          hint_mass_invite_description: "Generieren Sie Update-Token und teilen Sie diese mit Ihrem Team. Spieler k\xF6nnen ihre Kraft, Truppen und Notizen \xFCber einen einfachen Link aktualisieren \u2013 kein Firebase-Login erforderlich!",
+          hint_team_colors_title: "Teamfarben sind anpassbar",
+          hint_team_colors_description: "Bearbeiten Sie Teamfarben in den Einstellungen, um Ihr Allianz-Branding anzupassen. \xC4nderungen gelten f\xFCr Z\xE4hler, Abzeichen und Zuordnungskarten.",
+          hint_building_assign_title: "Geb\xE4udezuordnung erfolgt automatisch",
+          hint_building_assign_description: "Bei der Teamgenerierung werden Spieler basierend auf ihrer Kraft und Truppenzahl Geb\xE4uden zugeordnet. Ordnen Sie Geb\xE4ude neu an, um die Zuordnungspriorit\xE4t zu \xE4ndern."
         },
         it: {
           app_title: "Video Games Events Players Selection",
@@ -9358,7 +9385,16 @@
           freshness_dot_fresh: "Aggiornato di recente",
           freshness_dot_stale: "Non aggiornato da piu di 30 giorni",
           freshness_dot_very_stale: "Non aggiornato da piu di 90 giorni",
-          freshness_dot_never: "Mai aggiornato tramite auto-aggiornamento"
+          freshness_dot_never: "Mai aggiornato tramite auto-aggiornamento",
+          hints_title: "Lo sapevi?",
+          hints_skip: "Salta",
+          hints_got_it: "Capito",
+          hint_mass_invite_title: "Invita i giocatori ad aggiornare",
+          hint_mass_invite_description: "Genera token di aggiornamento e condividili con il tuo team. I giocatori possono aggiornare la loro potenza, truppe e note tramite un semplice link \u2014 nessun accesso Firebase richiesto!",
+          hint_team_colors_title: "I colori del team sono personalizzabili",
+          hint_team_colors_description: "Modifica i colori del team in Impostazioni per abbinare il tuo marchio di alleanza. I cambiamenti si applicano ai contatori, ai badge e alle schede di assegnazione.",
+          hint_building_assign_title: "L'assegnazione degli edifici \xE8 automatica",
+          hint_building_assign_description: "Durante la generazione dei team, i giocatori vengono assegnati agli edifici in base alla loro potenza e numero di truppe. Riordina gli edifici per modificare la priorit\xE0 di assegnazione."
         },
         ko: {
           app_title: "Video Games Events Players Selection",
@@ -9926,7 +9962,16 @@
           freshness_dot_fresh: "\uCD5C\uADFC\uC5D0 \uC5C5\uB370\uC774\uD2B8\uB428",
           freshness_dot_stale: "30\uC77C \uC774\uC0C1 \uC5C5\uB370\uC774\uD2B8\uB418\uC9C0 \uC54A\uC74C",
           freshness_dot_very_stale: "90\uC77C \uC774\uC0C1 \uC5C5\uB370\uC774\uD2B8\uB418\uC9C0 \uC54A\uC74C",
-          freshness_dot_never: "\uC790\uAC00 \uC5C5\uB370\uC774\uD2B8\uB85C \uC5C5\uB370\uC774\uD2B8\uB41C \uC801 \uC5C6\uC74C"
+          freshness_dot_never: "\uC790\uAC00 \uC5C5\uB370\uC774\uD2B8\uB85C \uC5C5\uB370\uC774\uD2B8\uB41C \uC801 \uC5C6\uC74C",
+          hints_title: "\uC54C\uACE0 \uACC4\uC168\uB098\uC694?",
+          hints_skip: "\uAC74\uB108\uB6F0\uAE30",
+          hints_got_it: "\uC54C\uACA0\uC2B5\uB2C8\uB2E4",
+          hint_mass_invite_title: "\uD50C\uB808\uC774\uC5B4\uC5D0\uAC8C \uC5C5\uB370\uC774\uD2B8 \uCD08\uB300",
+          hint_mass_invite_description: "\uC5C5\uB370\uC774\uD2B8 \uD1A0\uD070\uC744 \uC0DD\uC131\uD558\uACE0 \uD300\uACFC \uACF5\uC720\uD558\uC138\uC694. \uD50C\uB808\uC774\uC5B4\uB294 \uAC04\uB2E8\uD55C \uB9C1\uD06C\uB97C \uD1B5\uD574 \uC804\uB825, \uAD70\uB300 \uBC0F \uBA54\uBAA8\uB97C \uC5C5\uB370\uC774\uD2B8\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4. Firebase \uB85C\uADF8\uC778\uC774 \uD544\uC694\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4!",
+          hint_team_colors_title: "\uD300 \uC0C9\uC0C1\uC744 \uC0AC\uC6A9\uC790 \uC815\uC758\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4",
+          hint_team_colors_description: "\uC124\uC815\uC5D0\uC11C \uD300 \uC0C9\uC0C1\uC744 \uD3B8\uC9D1\uD558\uC5EC \uC5BC\uB77C\uC774\uC5B8\uC2A4 \uBE0C\uB79C\uB529\uACFC \uC77C\uCE58\uD558\uB3C4\uB85D \uD558\uC138\uC694. \uBCC0\uACBD \uC0AC\uD56D\uC740 \uD300 \uCE74\uC6B4\uD130, \uBC30\uC9C0 \uBC0F \uD560\uB2F9 \uCE74\uB4DC\uC5D0 \uC801\uC6A9\uB429\uB2C8\uB2E4.",
+          hint_building_assign_title: "\uAC74\uBB3C \uD560\uB2F9\uC740 \uC790\uB3D9\uC785\uB2C8\uB2E4",
+          hint_building_assign_description: "\uD300\uC744 \uC0DD\uC131\uD560 \uB54C \uD50C\uB808\uC774\uC5B4\uB294 \uC804\uB825\uACFC \uAD70\uB300 \uC218\uC5D0 \uB530\uB77C \uAC74\uBB3C\uC5D0 \uD560\uB2F9\uB429\uB2C8\uB2E4. \uD560\uB2F9 \uC6B0\uC120\uC21C\uC704\uB97C \uBCC0\uACBD\uD558\uB824\uBA74 \uAC74\uBB3C\uC744 \uB2E4\uC2DC \uC815\uB82C\uD558\uC138\uC694."
         },
         ro: {
           app_title: "Video Games Events Players Selection",
@@ -10494,7 +10539,16 @@
           freshness_dot_fresh: "Actualizat recent",
           freshness_dot_stale: "Neactualizat de peste 30 de zile",
           freshness_dot_very_stale: "Neactualizat de peste 90 de zile",
-          freshness_dot_never: "Niciodata actualizat prin auto-actualizare"
+          freshness_dot_never: "Niciodata actualizat prin auto-actualizare",
+          hints_title: "\u0218tiai asta?",
+          hints_skip: "Omite",
+          hints_got_it: "Am \xEEn\u021Beles",
+          hint_mass_invite_title: "Invit\u0103 juc\u0103torii s\u0103 se actualizeze",
+          hint_mass_invite_description: "Genereaz\u0103 tokenuri de actualizare \u0219i distribuie-le echipei tale. Juc\u0103torii pot actualiza puterea, armatele \u0219i notele prin simplu link \u2014 nu este necesar\u0103 autentificarea Firebase!",
+          hint_team_colors_title: "Culorile echipei pot fi personalizate",
+          hint_team_colors_description: "Editeaz\u0103 culorile echipei \xEEn Set\u0103ri pentru a se potrivi cu branding-ul alian\u021Bei. Modific\u0103rile se aplic\u0103 contoarelor echipei, badge-urilor \u0219i cardurilor de atribuire.",
+          hint_building_assign_title: "Atribuirea cl\u0103dirilor este automat\u0103",
+          hint_building_assign_description: "Atunci c\xE2nd generezi echipe, juc\u0103torii sunt atribui\u021Bi cl\u0103dirilor \xEEn func\u021Bie de puterea \u0219i num\u0103rul de armate. Reordoneaz\u0103 cl\u0103dirile pentru a schimba prioritatea de atribuire."
         }
       };
       if (typeof window !== "undefined") {
@@ -15016,7 +15070,7 @@
           Object.keys(legacyRegistry).forEach(function(eventId) {
             nextRegistry[eventId] = Object.assign({}, legacyRegistry[eventId]);
           });
-          var storedEvents = function() {
+          var storedEvents = (function() {
             var FirebaseService2 = deps.getFirebaseService();
             if (!FirebaseService2 || !FirebaseService2.getAllEventData) {
               return {};
@@ -15026,7 +15080,7 @@
               return {};
             }
             return normalizeStoredEventsData(FirebaseService2.getAllEventData(gameplayContext2));
-          }();
+          })();
           Object.keys(storedEvents).forEach(function(eventId) {
             var stored = storedEvents[eventId];
             var base = nextRegistry[eventId] || {};
@@ -16807,16 +16861,10 @@
                 var newEntry = {
                   historyId,
                   status: doc.status,
-                  eventName: _currentHistoryDoc && _currentHistoryDoc.eventName || null,
-                  playerSource: _currentHistoryDoc && _currentHistoryDoc.playerSource || "alliance"
+                  eventName: _currentHistoryDoc && _currentHistoryDoc.eventName || null
                 };
                 var updatedHistory = [newEntry].concat(recentHistory);
-                var sourceFilter = allianceId ? "alliance" : "personal";
-                var scoringHistory = updatedHistory.filter(function(e) {
-                  return (e.playerSource || "alliance") === sourceFilter;
-                });
-                var newStats = reliability.recalculatePlayerStats(scoringHistory, existing);
-                newStats.recentHistory = updatedHistory.slice(0, 10);
+                var newStats = reliability.recalculatePlayerStats(updatedHistory, existing);
                 playerStatsUpdates.push({ docId, stats: newStats });
               });
             }
@@ -22810,6 +22858,93 @@
     }
   });
 
+  // js/shell/hints-controller.js
+  var require_hints_controller = __commonJS({
+    "js/shell/hints-controller.js"() {
+      (function initHintsController(global2) {
+        "use strict";
+        var VIEWED_HINTS_KEY = "ds_viewed_hints";
+        var SESSION_SHOWN_KEY = "ds_hints_shown_this_session";
+        var HINTS = [
+          {
+            id: "mass-invite",
+            messageKey: "hint_mass_invite_title",
+            descriptionKey: "hint_mass_invite_description"
+          },
+          {
+            id: "team-colors",
+            messageKey: "hint_team_colors_title",
+            descriptionKey: "hint_team_colors_description"
+          },
+          {
+            id: "building-assign",
+            messageKey: "hint_building_assign_title",
+            descriptionKey: "hint_building_assign_description"
+          }
+        ];
+        function selectNextHint(hints, viewedHintIds) {
+          for (var i = 0; i < hints.length; i++) {
+            if (viewedHintIds.indexOf(hints[i].id) === -1) {
+              return hints[i];
+            }
+          }
+          return null;
+        }
+        function getViewedHints() {
+          try {
+            var raw = global2.localStorage.getItem(VIEWED_HINTS_KEY);
+            if (!raw) {
+              return [];
+            }
+            var parsed = JSON.parse(raw);
+            return Array.isArray(parsed) ? parsed : [];
+          } catch (_e) {
+            return [];
+          }
+        }
+        function markHintAsViewed(hintId) {
+          try {
+            var viewed = getViewedHints();
+            if (viewed.indexOf(hintId) === -1) {
+              viewed.push(hintId);
+            }
+            global2.localStorage.setItem(VIEWED_HINTS_KEY, JSON.stringify(viewed));
+          } catch (_e) {
+          }
+        }
+        function shouldShowHints(onboardingComplete) {
+          if (!onboardingComplete) {
+            return false;
+          }
+          try {
+            return global2.sessionStorage.getItem(SESSION_SHOWN_KEY) !== "true";
+          } catch (_e) {
+            return false;
+          }
+        }
+        function markHintsShownThisSession() {
+          try {
+            global2.sessionStorage.setItem(SESSION_SHOWN_KEY, "true");
+          } catch (_e) {
+          }
+        }
+        function init(modalController, i18nEngine) {
+          global2.DSHintsController._modalController = modalController;
+          global2.DSHintsController._i18nEngine = i18nEngine;
+        }
+        global2.DSHintsController = {
+          HINTS,
+          selectNextHint,
+          getViewedHints,
+          markHintAsViewed,
+          shouldShowHints,
+          markHintsShownThisSession,
+          init
+        };
+      })(window);
+    }
+  });
+
   // app.js
   var require_app = __commonJS({
     "app.js"() {
@@ -23772,6 +23907,15 @@
         on("supportOpenDiscordBtn", "click", openSupportDiscordProfile);
         on("supportReportBugBtn", "click", () => openSupportIssueComposer("bug"));
         on("supportRequestFeatureBtn", "click", () => openSupportIssueComposer("feature"));
+        function closeHintsModal() {
+          const overlay = document.getElementById("hintsModal");
+          if (overlay) {
+            closeModalOverlay(overlay);
+          }
+        }
+        on("hintsCloseBtn", "click", closeHintsModal);
+        on("hintsSkipBtn", "click", closeHintsModal);
+        on("hintsGotItBtn", "click", closeHintsModal);
         syncAssignmentAlgorithmControl();
         updateClearAllButtonVisibility();
       }
@@ -27606,6 +27750,40 @@
             return;
           }
           cacheStartupFeatureFlags();
+          function showHintsAfterLogin() {
+            var controller = global2.DSHintsController;
+            if (!controller) {
+              return;
+            }
+            var onboardingComplete = false;
+            try {
+              onboardingComplete = global2.localStorage.getItem("ds_onboarding_done") === "1";
+            } catch (_e) {
+            }
+            if (!controller.shouldShowHints(onboardingComplete)) {
+              return;
+            }
+            var hint = controller.selectNextHint(controller.HINTS, controller.getViewedHints());
+            if (!hint) {
+              return;
+            }
+            var titleEl = document.getElementById("hintTitleEl");
+            var descEl = document.getElementById("hintDescEl");
+            if (titleEl) {
+              titleEl.setAttribute("data-i18n", hint.messageKey);
+            }
+            if (descEl) {
+              descEl.setAttribute("data-i18n", hint.descriptionKey);
+            }
+            if (global2.DSI18N && typeof global2.DSI18N.applyTranslations === "function") {
+              global2.DSI18N.applyTranslations();
+            }
+            controller.markHintAsViewed(hint.id);
+            controller.markHintsShownThisSession();
+            if (global2.DSShellModalController && typeof global2.DSShellModalController.open === "function") {
+              global2.DSShellModalController.open({ overlay: "#hintsModal" });
+            }
+          }
           FirebaseService.setAuthCallback((isSignedIn, user) => {
             if (isSignedIn) {
               const activeGameId = syncSignedInGameContext({ allowDefault: false });
@@ -27623,6 +27801,7 @@
                 global2.showPostAuthGameSelector();
               }
               initOnboarding();
+              setTimeout(showHintsAfterLogin, 1e3);
               if (global2.getNotificationsFeatureController && typeof global2.getNotificationsFeatureController === "function") {
                 const notificationsController = global2.getNotificationsFeatureController();
                 if (notificationsController && typeof notificationsController.startPolling === "function") {
@@ -27776,6 +27955,7 @@
   require_auth_ui_controller();
   require_game_metadata_admin_controller();
   require_game_selector_controller();
+  require_hints_controller();
   require_app();
   require_app_init();
 })();
