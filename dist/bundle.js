@@ -12692,6 +12692,25 @@
           }
           await generateMap(team, assignments, statusId, deps);
         }
+        function triggerCanvasPngDownload(canvas, filename) {
+          return new Promise(function(resolve, reject) {
+            canvas.toBlob(function(blob) {
+              if (!blob) {
+                reject(new Error("Canvas toBlob produced no data"));
+                return;
+              }
+              var objectUrl = URL.createObjectURL(blob);
+              var anchor = document.createElement("a");
+              anchor.href = objectUrl;
+              anchor.download = filename;
+              document.body.appendChild(anchor);
+              anchor.click();
+              document.body.removeChild(anchor);
+              URL.revokeObjectURL(objectUrl);
+              resolve();
+            }, "image/png");
+          });
+        }
         function getMapHeaderTitle(team, deps) {
           var normalizedTeam = team === "B" ? "B" : "A";
           var eventName = deps.getEventDisplayName(deps.getCurrentEvent());
@@ -12901,13 +12920,7 @@
                 y += 26;
               });
             }
-            var dataURL = canvas.toDataURL("image/png");
-            var anchor = document.createElement("a");
-            anchor.href = dataURL;
-            anchor.download = "team_" + team + "_" + deps.getActiveEvent().excelPrefix + "_nomap.png";
-            document.body.appendChild(anchor);
-            anchor.click();
-            document.body.removeChild(anchor);
+            await triggerCanvasPngDownload(canvas, "team_" + team + "_" + deps.getActiveEvent().excelPrefix + "_nomap.png");
             deps.showMessage(statusId, deps.t("message_team_downloaded_list", { team }), "success");
           } catch (error) {
             console.error(error);
@@ -13472,13 +13485,7 @@
             ctx.fillStyle = "rgba(90,90,90,0.95)";
             ctx.textAlign = "center";
             ctx.fillText(deps.t("map_footer_text"), totalWidth / 2, totalHeight - 14);
-            var dataURL = canvas.toDataURL("image/png");
-            var anchor = document.createElement("a");
-            anchor.href = dataURL;
-            anchor.download = "team_" + team + "_" + deps.getActiveEvent().excelPrefix + ".png";
-            document.body.appendChild(anchor);
-            anchor.click();
-            document.body.removeChild(anchor);
+            await triggerCanvasPngDownload(canvas, "team_" + team + "_" + deps.getActiveEvent().excelPrefix + ".png");
             deps.showMessage(statusId, deps.t("message_team_map_downloaded", { team, drawnCount, bombSquad: unmappedPlayers.length, substitutes: substitutes.length }), "success");
           } catch (error) {
             console.error(error);
@@ -13490,6 +13497,7 @@
           closeDownloadModal,
           downloadTeamExcel,
           downloadTeamMap,
+          triggerCanvasPngDownload,
           getMapHeaderTitle,
           getActiveEventAvatarDataUrl,
           loadActiveEventAvatarForHeader,

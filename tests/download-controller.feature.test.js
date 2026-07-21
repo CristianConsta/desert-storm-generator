@@ -224,4 +224,64 @@ describe('DSDownloadController', () => {
         const result = global.DSDownloadController.fitCanvasHeaderText({}, 'hello', 0, 'bold 40px Arial');
         assert.equal(result, 'hello');
     });
+
+    it('triggerCanvasPngDownload uses a Blob object URL instead of a data: URI (Android download fix)', async () => {
+        const fakeBlob = { size: 123, type: 'image/png' };
+        let toBlobType = null;
+        let toBlobCallback = null;
+        const fakeCanvas = {
+            toBlob: (cb, type) => {
+                toBlobCallback = cb;
+                toBlobType = type;
+            },
+        };
+
+        let createdObjectUrl = null;
+        let revokedUrl = null;
+        const originalCreateObjectURL = global.URL.createObjectURL;
+        const originalRevokeObjectURL = global.URL.revokeObjectURL;
+        global.URL.createObjectURL = (blob) => {
+            assert.equal(blob, fakeBlob, 'createObjectURL should receive the blob produced by toBlob');
+            createdObjectUrl = 'blob:mock-url-1';
+            return createdObjectUrl;
+        };
+        global.URL.revokeObjectURL = (url) => { revokedUrl = url; };
+
+        let capturedAnchor = null;
+        let clicked = false;
+        const originalCreateElement = document.createElement;
+        document.createElement = (tag) => {
+            const el = originalCreateElement(tag);
+            if (tag === 'a') {
+                capturedAnchor = el;
+                const originalClick = el.click;
+                el.click = function (...args) {
+                    clicked = true;
+                    return originalClick.apply(el, args);
+                };
+            }
+            return el;
+        };
+
+        try {
+            const promise = global.DSDownloadController.triggerCanvasPngDownload(fakeCanvas, 'team_A_test.png');
+
+            assert.equal(toBlobType, 'image/png');
+            assert.equal(typeof toBlobCallback, 'function', 'canvas.toBlob should be called synchronously');
+
+            toBlobCallback(fakeBlob);
+            await promise;
+
+            assert.equal(createdObjectUrl, 'blob:mock-url-1');
+            assert.ok(capturedAnchor, 'an anchor element should have been created');
+            assert.equal(capturedAnchor.href, createdObjectUrl);
+            assert.equal(capturedAnchor.download, 'team_A_test.png');
+            assert.ok(clicked, 'anchor.click() should have been invoked');
+            assert.equal(revokedUrl, createdObjectUrl, 'the object URL should be revoked after triggering the download');
+        } finally {
+            document.createElement = originalCreateElement;
+            global.URL.createObjectURL = originalCreateObjectURL;
+            global.URL.revokeObjectURL = originalRevokeObjectURL;
+        }
+    });
 });
