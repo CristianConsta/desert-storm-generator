@@ -12705,6 +12705,7 @@
           }
         }
         function downloadBlobViaAnchor(blob, filename) {
+          console.log("[download] using Blob+anchor for", filename);
           var objectUrl = URL.createObjectURL(blob);
           var anchor = document.createElement("a");
           anchor.href = objectUrl;
@@ -12713,14 +12714,21 @@
           anchor.click();
           document.body.removeChild(anchor);
           URL.revokeObjectURL(objectUrl);
+          console.log("[download] anchor.click() fired for", filename);
         }
         function triggerFileDownload(blob, filename) {
           var file = typeof File === "function" ? new File([blob], filename, { type: blob.type }) : null;
-          if (file && canShareFile(file)) {
-            return navigator.share({ files: [file] }).catch(function(error) {
+          var shareSupported = !!(file && canShareFile(file));
+          console.log("[download] triggerFileDownload for", filename, "\u2014 Web Share API available:", shareSupported);
+          if (shareSupported) {
+            return navigator.share({ files: [file] }).then(function() {
+              console.log("[download] navigator.share() resolved (share sheet completed) for", filename);
+            }).catch(function(error) {
               if (error && error.name === "AbortError") {
+                console.log("[download] navigator.share() cancelled by user for", filename);
                 return;
               }
+              console.warn("[download] navigator.share() failed, falling back to anchor download:", error);
               downloadBlobViaAnchor(blob, filename);
             });
           }
