@@ -2646,5 +2646,5 @@ test('init() enables experimentalAutoDetectLongPolling so Safari does not fail t
   require(firebaseModulePath);
 
   assert.equal(global.FirebaseManager.init(), true);
-  assert.deepEqual(settingsArgs, { experimentalAutoDetectLongPolling: true });
+  assert.deepEqual(settingsArgs, { experimentalAutoDetectLongPolling: true, merge: true });
 });

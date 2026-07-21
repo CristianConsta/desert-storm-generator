@@ -2247,7 +2247,7 @@ const FirebaseManager = (function() {
             // default WebChannel streaming handshake with "Fetch API cannot load ... due
             // to access control checks", requiring a page refresh to recover. Auto-detect
             // long polling instead so those environments work on the very first load.
-            db.settings({ experimentalAutoDetectLongPolling: true });
+            db.settings({ experimentalAutoDetectLongPolling: true, merge: true });
             DSFirebaseInfra.setDb(db);
             DSFirebaseAuth.configure({
                 getAuth: function () { return auth; },
