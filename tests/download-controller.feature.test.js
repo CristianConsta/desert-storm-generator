@@ -32,9 +32,19 @@ global.document = {
 };
 global.Image = class { set src(v) { if (this.onerror) this.onerror(); } };
 global.alert = () => {};
+
+// Node defines `navigator` as a getter-only global (no setter), so a plain
+// `global.navigator = {...}` silently no-ops. Use defineProperty to actually mock it.
+const originalNavigatorDescriptor = Object.getOwnPropertyDescriptor(global, 'navigator');
+const mockNavigator = (value) => {
+    Object.defineProperty(global, 'navigator', { value, configurable: true, writable: true });
+};
+const restoreNavigator = () => {
+    Object.defineProperty(global, 'navigator', originalNavigatorDescriptor);
+};
 global.FirebaseService = { getActivePlayerDatabase: () => ({}) };
 let lastSheetData = null;
-let lastWriteFileArgs = null;
+let lastWriteOpts = null;
 global.XLSX = {
     utils: {
         book_new: () => ({}),
@@ -44,8 +54,9 @@ global.XLSX = {
         },
         book_append_sheet: () => {},
     },
-    writeFile: (workbook, fileName) => {
-        lastWriteFileArgs = { workbook, fileName };
+    write: (workbook, opts) => {
+        lastWriteOpts = opts;
+        return new Uint8Array([1, 2, 3]);
     },
 };
 
@@ -55,7 +66,7 @@ require('../js/features/generator/download-controller.js');
 describe('DSDownloadController', () => {
     beforeEach(() => {
         lastSheetData = null;
-        lastWriteFileArgs = null;
+        lastWriteOpts = null;
     });
 
     it('exports all expected methods', () => {
@@ -180,7 +191,23 @@ describe('DSDownloadController', () => {
         assert.ok(alertCalled);
     });
 
-    it('downloadTeamExcel appends substitutes with replaced starters column', async () => {
+    it('downloadTeamExcel appends substitutes with replaced starters column and downloads via Blob', async () => {
+        let createdObjectUrl = null;
+        let capturedAnchor = null;
+        const originalCreateObjectURL = global.URL.createObjectURL;
+        const originalRevokeObjectURL = global.URL.revokeObjectURL;
+        global.URL.createObjectURL = () => {
+            createdObjectUrl = 'blob:mock-xlsx-url';
+            return createdObjectUrl;
+        };
+        global.URL.revokeObjectURL = () => {};
+        const originalCreateElement = document.createElement;
+        document.createElement = (tag) => {
+            const el = originalCreateElement(tag);
+            if (tag === 'a') capturedAnchor = el;
+            return el;
+        };
+
         const deps = {
             ensureXLSXLoaded: async () => {},
             t: (key) => key,
@@ -196,23 +223,33 @@ describe('DSDownloadController', () => {
             getActiveEvent: () => ({ excelPrefix: 'desert_storm' }),
         };
 
-        await global.DSDownloadController.downloadTeamExcel('A', deps);
+        try {
+            await global.DSDownloadController.downloadTeamExcel('A', deps);
 
-        assert.ok(Array.isArray(lastSheetData), 'Excel sheet data should be captured');
-        assert.equal(lastSheetData.length, 2);
-        assert.deepEqual(lastSheetData[0], {
-            excel_header_building: 'HQ',
-            excel_header_priority: 1,
-            excel_header_player: 'Alice',
-            excel_header_replaces: '',
-        });
-        assert.deepEqual(lastSheetData[1], {
-            excel_header_building: 'excel_substitute_building',
-            excel_header_priority: '',
-            excel_header_player: 'ReserveOne',
-            excel_header_replaces: 'Alice, Bob',
-        });
-        assert.equal(lastWriteFileArgs.fileName, 'desert_storm_team_A_assignments.xlsx');
+            assert.ok(Array.isArray(lastSheetData), 'Excel sheet data should be captured');
+            assert.equal(lastSheetData.length, 2);
+            assert.deepEqual(lastSheetData[0], {
+                excel_header_building: 'HQ',
+                excel_header_priority: 1,
+                excel_header_player: 'Alice',
+                excel_header_replaces: '',
+            });
+            assert.deepEqual(lastSheetData[1], {
+                excel_header_building: 'excel_substitute_building',
+                excel_header_priority: '',
+                excel_header_player: 'ReserveOne',
+                excel_header_replaces: 'Alice, Bob',
+            });
+            assert.equal(lastWriteOpts.bookType, 'xlsx');
+            assert.equal(lastWriteOpts.type, 'array');
+            assert.ok(capturedAnchor, 'anchor element should have been created for the fallback download');
+            assert.equal(capturedAnchor.download, 'desert_storm_team_A_assignments.xlsx');
+            assert.equal(capturedAnchor.href, createdObjectUrl);
+        } finally {
+            document.createElement = originalCreateElement;
+            global.URL.createObjectURL = originalCreateObjectURL;
+            global.URL.revokeObjectURL = originalRevokeObjectURL;
+        }
     });
 
     it('fitCanvasHeaderText returns original text when maxWidth is non-finite', () => {
@@ -282,6 +319,147 @@ describe('DSDownloadController', () => {
             document.createElement = originalCreateElement;
             global.URL.createObjectURL = originalCreateObjectURL;
             global.URL.revokeObjectURL = originalRevokeObjectURL;
+        }
+    });
+
+    it('triggerFileDownload uses navigator.share() with a File when the Web Share API supports files (iOS Safari fix)', async () => {
+        const fakeBlob = { type: 'image/png' };
+        const originalFile = global.File;
+        global.File = class {
+            constructor(parts, name, options) {
+                this.parts = parts;
+                this.name = name;
+                this.type = options && options.type;
+            }
+        };
+        let sharedWith = null;
+        mockNavigator({
+            share: (data) => {
+                sharedWith = data;
+                return Promise.resolve();
+            },
+            canShare: (data) => Array.isArray(data.files) && data.files.length === 1,
+        });
+
+        let anchorCreated = false;
+        const originalCreateElement = document.createElement;
+        document.createElement = (tag) => {
+            if (tag === 'a') anchorCreated = true;
+            return originalCreateElement(tag);
+        };
+
+        try {
+            await global.DSDownloadController.triggerFileDownload(fakeBlob, 'team_A_test.png');
+
+            assert.ok(sharedWith, 'navigator.share should have been called');
+            assert.equal(sharedWith.files.length, 1);
+            assert.equal(sharedWith.files[0].name, 'team_A_test.png');
+            assert.ok(!anchorCreated, 'should not fall back to anchor download when share succeeds');
+        } finally {
+            document.createElement = originalCreateElement;
+            restoreNavigator();
+            global.File = originalFile;
+        }
+    });
+
+    it('triggerFileDownload falls back to Blob+anchor download when the Web Share API is unavailable', async () => {
+        const fakeBlob = { type: 'image/png' };
+        mockNavigator({});
+
+        let createdObjectUrl = null;
+        let capturedAnchor = null;
+        const originalCreateObjectURL = global.URL.createObjectURL;
+        global.URL.createObjectURL = () => {
+            createdObjectUrl = 'blob:mock-fallback-url';
+            return createdObjectUrl;
+        };
+        global.URL.revokeObjectURL = () => {};
+        const originalCreateElement = document.createElement;
+        document.createElement = (tag) => {
+            const el = originalCreateElement(tag);
+            if (tag === 'a') capturedAnchor = el;
+            return el;
+        };
+
+        try {
+            await global.DSDownloadController.triggerFileDownload(fakeBlob, 'team_A_test.png');
+
+            assert.ok(capturedAnchor, 'anchor fallback should be used when navigator.share is unavailable');
+            assert.equal(capturedAnchor.href, createdObjectUrl);
+            assert.equal(capturedAnchor.download, 'team_A_test.png');
+        } finally {
+            document.createElement = originalCreateElement;
+            global.URL.createObjectURL = originalCreateObjectURL;
+            restoreNavigator();
+        }
+    });
+
+    it('triggerFileDownload falls back to Blob+anchor download when navigator.share() rejects (e.g. lost user activation)', async () => {
+        const fakeBlob = { type: 'image/png' };
+        const originalFile = global.File;
+        global.File = class {
+            constructor(parts, name, options) {
+                this.name = name;
+                this.type = options && options.type;
+            }
+        };
+        mockNavigator({
+            share: () => Promise.reject(Object.assign(new Error('not allowed'), { name: 'NotAllowedError' })),
+            canShare: () => true,
+        });
+
+        let capturedAnchor = null;
+        const originalCreateObjectURL = global.URL.createObjectURL;
+        global.URL.createObjectURL = () => 'blob:mock-retry-url';
+        global.URL.revokeObjectURL = () => {};
+        const originalCreateElement = document.createElement;
+        document.createElement = (tag) => {
+            const el = originalCreateElement(tag);
+            if (tag === 'a') capturedAnchor = el;
+            return el;
+        };
+
+        try {
+            await global.DSDownloadController.triggerFileDownload(fakeBlob, 'team_A_test.png');
+
+            assert.ok(capturedAnchor, 'anchor fallback should still fire when share() rejects with a non-abort error');
+            assert.equal(capturedAnchor.download, 'team_A_test.png');
+        } finally {
+            document.createElement = originalCreateElement;
+            global.URL.createObjectURL = originalCreateObjectURL;
+            restoreNavigator();
+            global.File = originalFile;
+        }
+    });
+
+    it('triggerFileDownload does not fall back when the user cancels the native share sheet (AbortError)', async () => {
+        const fakeBlob = { type: 'image/png' };
+        const originalFile = global.File;
+        global.File = class {
+            constructor(parts, name, options) {
+                this.name = name;
+                this.type = options && options.type;
+            }
+        };
+        mockNavigator({
+            share: () => Promise.reject(Object.assign(new Error('cancelled'), { name: 'AbortError' })),
+            canShare: () => true,
+        });
+
+        let anchorCreated = false;
+        const originalCreateElement = document.createElement;
+        document.createElement = (tag) => {
+            if (tag === 'a') anchorCreated = true;
+            return originalCreateElement(tag);
+        };
+
+        try {
+            await global.DSDownloadController.triggerFileDownload(fakeBlob, 'team_A_test.png');
+            assert.ok(!anchorCreated, 'cancelling the share sheet should not trigger a second, silent download');
+        } finally {
+            document.createElement = originalCreateElement;
+            restoreNavigator();
+            global.File = originalFile;
         }
     });
 });

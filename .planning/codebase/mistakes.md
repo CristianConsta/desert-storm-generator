@@ -20,8 +20,32 @@ Blob + object URL internally, not a raw data URI — this contrast was the key c
 **How to avoid repeating:** Never trigger a browser download of generated binary content (canvas
 PNGs, generated files, etc.) via `element.toDataURL()` + `<a href="data:...">`. Always use
 `canvas.toBlob(cb, mimeType)` → `URL.createObjectURL(blob)` for the anchor `href`, then
-`URL.revokeObjectURL(url)` after the click. This is the only pattern that reliably works across
-desktop, iOS Safari, and Android Chrome/WebView regardless of payload size. The shared helper
-`DSDownloadController.triggerCanvasPngDownload(canvas, filename)` now encapsulates this — reuse it
-for any future canvas-to-file download in this codebase instead of hand-rolling the anchor/data URI
-pattern again.
+`URL.revokeObjectURL(url)` after the click. This removes Android's data-URI size ceiling
+regardless of payload size — but note this alone does **not** fix iOS Safari; see the next entry.
+
+## 2026-07-21 — Same download buttons also failed on iOS Safari, for a different reason
+
+**What went wrong:** After the Android fix above, iOS users still reported the exact same
+symptom — the app's "downloaded successfully" message appeared, but no file showed up anywhere
+(Downloads, Files app, Photos). This affected **both** the map PNG and the Excel export
+identically, which ruled out the Android root cause (Excel never used a `data:` URI — it was
+already Blob-based via SheetJS — yet it failed the same way).
+
+**Root cause:** Both download functions do real async work (`await ensureXLSXLoaded()` for
+Excel; `await loadMapImage()` / `await loadActiveEventAvatarForHeader()` for the map) *before*
+ever creating the anchor and calling `.click()`. WebKit/Safari expires "user activation" (the
+flag that marks a call as a direct result of a real tap) much more aggressively than Chromium
+once any async gap — a network fetch, an `<img onload>`, etc. — happens between the tap and the
+triggering call. The `anchor.click()` still executes without throwing, so the app's success
+message fires normally, but Safari silently discards the save instead of writing a file.
+
+**How to avoid repeating:** For any download triggered after async work, prefer the Web Share
+API (`navigator.share({ files: [file] })`) over `<a download>` — Apple's recommended path for
+saving script-generated content, and it degrades gracefully via the native share sheet rather
+than failing silently. Fall back to the Blob+anchor approach only when `navigator.share`/
+`canShare` aren't available (desktop, older/non-Safari browsers), and treat an `AbortError` from
+`share()` as a deliberate user cancellation (don't re-trigger a fallback download in that case —
+any other rejection should still fall back). The shared helper
+`DSDownloadController.triggerFileDownload(blob, filename)` now encapsulates this share-first/
+anchor-fallback logic — reuse it (and `triggerCanvasPngDownload` for canvases specifically) for
+any future file-save flow in this codebase instead of hand-rolling anchor downloads again.

@@ -110,7 +110,9 @@
         });
 
         XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(data), deps.t('excel_sheet_name', { team: team }));
-        XLSX.writeFile(wb, deps.getActiveEvent().excelPrefix + '_team_' + team + '_assignments.xlsx');
+        var workbookBytes = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+        var workbookBlob = new Blob([workbookBytes], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        await triggerFileDownload(workbookBlob, deps.getActiveEvent().excelPrefix + '_team_' + team + '_assignments.xlsx');
 
         deps.showMessage('downloadStatus', deps.t('message_excel_downloaded'), 'success');
     }
@@ -148,6 +150,48 @@
         await generateMap(team, assignments, statusId, deps);
     }
 
+    function canShareFile(file) {
+        if (typeof navigator === 'undefined' || typeof navigator.share !== 'function' || typeof navigator.canShare !== 'function') {
+            return false;
+        }
+        try {
+            return navigator.canShare({ files: [file] });
+        } catch (error) {
+            return false;
+        }
+    }
+
+    function downloadBlobViaAnchor(blob, filename) {
+        var objectUrl = URL.createObjectURL(blob);
+        var anchor = document.createElement('a');
+        anchor.href = objectUrl;
+        anchor.download = filename;
+        document.body.appendChild(anchor);
+        anchor.click();
+        document.body.removeChild(anchor);
+        URL.revokeObjectURL(objectUrl);
+    }
+
+    // iOS Safari can silently drop `<a download>` saves for content produced after any
+    // async work (network fetch, image load, etc.) runs between the tap and the click —
+    // the click still "succeeds" in JS but no file is written. navigator.share() hands the
+    // save off to the native share sheet instead, which iOS handles reliably in that case.
+    function triggerFileDownload(blob, filename) {
+        var file = (typeof File === 'function') ? new File([blob], filename, { type: blob.type }) : null;
+
+        if (file && canShareFile(file)) {
+            return navigator.share({ files: [file] }).catch(function (error) {
+                if (error && error.name === 'AbortError') {
+                    return;
+                }
+                downloadBlobViaAnchor(blob, filename);
+            });
+        }
+
+        downloadBlobViaAnchor(blob, filename);
+        return Promise.resolve();
+    }
+
     function triggerCanvasPngDownload(canvas, filename) {
         return new Promise(function (resolve, reject) {
             canvas.toBlob(function (blob) {
@@ -155,15 +199,7 @@
                     reject(new Error('Canvas toBlob produced no data'));
                     return;
                 }
-                var objectUrl = URL.createObjectURL(blob);
-                var anchor = document.createElement('a');
-                anchor.href = objectUrl;
-                anchor.download = filename;
-                document.body.appendChild(anchor);
-                anchor.click();
-                document.body.removeChild(anchor);
-                URL.revokeObjectURL(objectUrl);
-                resolve();
+                resolve(triggerFileDownload(blob, filename));
             }, 'image/png');
         });
     }
@@ -1068,6 +1104,7 @@
         downloadTeamExcel: downloadTeamExcel,
         downloadTeamMap: downloadTeamMap,
         triggerCanvasPngDownload: triggerCanvasPngDownload,
+        triggerFileDownload: triggerFileDownload,
         getMapHeaderTitle: getMapHeaderTitle,
         getActiveEventAvatarDataUrl: getActiveEventAvatarDataUrl,
         loadActiveEventAvatarForHeader: loadActiveEventAvatarForHeader,

@@ -12657,7 +12657,9 @@
             data.push(row);
           });
           XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(data), deps.t("excel_sheet_name", { team }));
-          XLSX.writeFile(wb, deps.getActiveEvent().excelPrefix + "_team_" + team + "_assignments.xlsx");
+          var workbookBytes = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+          var workbookBlob = new Blob([workbookBytes], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+          await triggerFileDownload(workbookBlob, deps.getActiveEvent().excelPrefix + "_team_" + team + "_assignments.xlsx");
           deps.showMessage("downloadStatus", deps.t("message_excel_downloaded"), "success");
         }
         async function downloadTeamMap(team, deps) {
@@ -12692,6 +12694,39 @@
           }
           await generateMap(team, assignments, statusId, deps);
         }
+        function canShareFile(file) {
+          if (typeof navigator === "undefined" || typeof navigator.share !== "function" || typeof navigator.canShare !== "function") {
+            return false;
+          }
+          try {
+            return navigator.canShare({ files: [file] });
+          } catch (error) {
+            return false;
+          }
+        }
+        function downloadBlobViaAnchor(blob, filename) {
+          var objectUrl = URL.createObjectURL(blob);
+          var anchor = document.createElement("a");
+          anchor.href = objectUrl;
+          anchor.download = filename;
+          document.body.appendChild(anchor);
+          anchor.click();
+          document.body.removeChild(anchor);
+          URL.revokeObjectURL(objectUrl);
+        }
+        function triggerFileDownload(blob, filename) {
+          var file = typeof File === "function" ? new File([blob], filename, { type: blob.type }) : null;
+          if (file && canShareFile(file)) {
+            return navigator.share({ files: [file] }).catch(function(error) {
+              if (error && error.name === "AbortError") {
+                return;
+              }
+              downloadBlobViaAnchor(blob, filename);
+            });
+          }
+          downloadBlobViaAnchor(blob, filename);
+          return Promise.resolve();
+        }
         function triggerCanvasPngDownload(canvas, filename) {
           return new Promise(function(resolve, reject) {
             canvas.toBlob(function(blob) {
@@ -12699,15 +12734,7 @@
                 reject(new Error("Canvas toBlob produced no data"));
                 return;
               }
-              var objectUrl = URL.createObjectURL(blob);
-              var anchor = document.createElement("a");
-              anchor.href = objectUrl;
-              anchor.download = filename;
-              document.body.appendChild(anchor);
-              anchor.click();
-              document.body.removeChild(anchor);
-              URL.revokeObjectURL(objectUrl);
-              resolve();
+              resolve(triggerFileDownload(blob, filename));
             }, "image/png");
           });
         }
@@ -13498,6 +13525,7 @@
           downloadTeamExcel,
           downloadTeamMap,
           triggerCanvasPngDownload,
+          triggerFileDownload,
           getMapHeaderTitle,
           getActiveEventAvatarDataUrl,
           loadActiveEventAvatarForHeader,
