@@ -33,14 +33,20 @@ global.document = {
 global.Image = class { set src(v) { if (this.onerror) this.onerror(); } };
 global.alert = () => {};
 
-// Node defines `navigator` as a getter-only global (no setter), so a plain
-// `global.navigator = {...}` silently no-ops. Use defineProperty to actually mock it.
+// Where Node exposes a global `navigator` (Node 21+), it's a getter-only property (no
+// setter), so a plain `global.navigator = {...}` silently no-ops. Use defineProperty to
+// actually mock it. Older Node (e.g. CI's Node 20) has no `navigator` global at all, so
+// there's nothing to restore a descriptor for — just delete the mock in that case.
 const originalNavigatorDescriptor = Object.getOwnPropertyDescriptor(global, 'navigator');
 const mockNavigator = (value) => {
     Object.defineProperty(global, 'navigator', { value, configurable: true, writable: true });
 };
 const restoreNavigator = () => {
-    Object.defineProperty(global, 'navigator', originalNavigatorDescriptor);
+    if (originalNavigatorDescriptor) {
+        Object.defineProperty(global, 'navigator', originalNavigatorDescriptor);
+    } else {
+        delete global.navigator;
+    }
 };
 global.FirebaseService = { getActivePlayerDatabase: () => ({}) };
 let lastSheetData = null;
