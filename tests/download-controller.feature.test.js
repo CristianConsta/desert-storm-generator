@@ -268,14 +268,27 @@ describe('DSDownloadController', () => {
         assert.equal(result, 'hello');
     });
 
-    it('triggerCanvasPngDownload uses a Blob object URL instead of a data: URI (Android download fix)', async () => {
-        const fakeBlob = { size: 123, type: 'image/png' };
-        let toBlobType = null;
-        let toBlobCallback = null;
+    it('dataUrlToBlob decodes a base64 data URL back into a Blob with matching bytes and mime type', async () => {
+        // "hello" base64-encoded, wrapped as a fake PNG data URL
+        const dataUrl = 'data:image/png;base64,aGVsbG8=';
+        const blob = global.DSDownloadController.dataUrlToBlob(dataUrl);
+
+        assert.equal(blob.type, 'image/png');
+        const text = await blob.text();
+        assert.equal(text, 'hello');
+    });
+
+    it('triggerCanvasPngDownload uses canvas.toDataURL() (synchronous — avoids Safari\'s unreliable toBlob callback) and downloads via Blob', async () => {
+        // Safari has long-standing bug reports of canvas.toBlob() never invoking its
+        // callback for some canvases, silently hanging the download forever with no
+        // error and no success message. toDataURL() is synchronous and always completes,
+        // so it's the reliable source of truth; we decode it to a Blob ourselves instead
+        // of depending on toBlob().
+        const dataUrl = 'data:image/png;base64,aGVsbG8=';
         const fakeCanvas = {
-            toBlob: (cb, type) => {
-                toBlobCallback = cb;
-                toBlobType = type;
+            toDataURL: (type) => {
+                assert.equal(type, 'image/png');
+                return dataUrl;
             },
         };
 
@@ -284,7 +297,7 @@ describe('DSDownloadController', () => {
         const originalCreateObjectURL = global.URL.createObjectURL;
         const originalRevokeObjectURL = global.URL.revokeObjectURL;
         global.URL.createObjectURL = (blob) => {
-            assert.equal(blob, fakeBlob, 'createObjectURL should receive the blob produced by toBlob');
+            assert.equal(blob.type, 'image/png');
             createdObjectUrl = 'blob:mock-url-1';
             return createdObjectUrl;
         };
@@ -307,13 +320,7 @@ describe('DSDownloadController', () => {
         };
 
         try {
-            const promise = global.DSDownloadController.triggerCanvasPngDownload(fakeCanvas, 'team_A_test.png');
-
-            assert.equal(toBlobType, 'image/png');
-            assert.equal(typeof toBlobCallback, 'function', 'canvas.toBlob should be called synchronously');
-
-            toBlobCallback(fakeBlob);
-            await promise;
+            await global.DSDownloadController.triggerCanvasPngDownload(fakeCanvas, 'team_A_test.png');
 
             assert.equal(createdObjectUrl, 'blob:mock-url-1');
             assert.ok(capturedAnchor, 'an anchor element should have been created');

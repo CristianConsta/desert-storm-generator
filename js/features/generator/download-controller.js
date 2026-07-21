@@ -200,16 +200,26 @@
         return Promise.resolve();
     }
 
+    function dataUrlToBlob(dataUrl) {
+        var commaIndex = dataUrl.indexOf(',');
+        var meta = dataUrl.slice(0, commaIndex);
+        var mimeMatch = meta.match(/data:([^;]+)/);
+        var mime = mimeMatch ? mimeMatch[1] : 'application/octet-stream';
+        var binary = atob(dataUrl.slice(commaIndex + 1));
+        var bytes = new Uint8Array(binary.length);
+        for (var i = 0; i < binary.length; i += 1) {
+            bytes[i] = binary.charCodeAt(i);
+        }
+        return new Blob([bytes], { type: mime });
+    }
+
+    // canvas.toBlob() has long-standing WebKit bug reports of silently never invoking its
+    // callback for some canvases — the download hangs forever with no error and no success
+    // message. toDataURL() is synchronous and always completes, so we use that as the
+    // reliable source and decode it to a Blob ourselves instead of depending on toBlob().
     function triggerCanvasPngDownload(canvas, filename) {
-        return new Promise(function (resolve, reject) {
-            canvas.toBlob(function (blob) {
-                if (!blob) {
-                    reject(new Error('Canvas toBlob produced no data'));
-                    return;
-                }
-                resolve(triggerFileDownload(blob, filename));
-            }, 'image/png');
-        });
+        var blob = dataUrlToBlob(canvas.toDataURL('image/png'));
+        return triggerFileDownload(blob, filename);
     }
 
     function getMapHeaderTitle(team, deps) {
@@ -1113,6 +1123,7 @@
         downloadTeamMap: downloadTeamMap,
         triggerCanvasPngDownload: triggerCanvasPngDownload,
         triggerFileDownload: triggerFileDownload,
+        dataUrlToBlob: dataUrlToBlob,
         getMapHeaderTitle: getMapHeaderTitle,
         getActiveEventAvatarDataUrl: getActiveEventAvatarDataUrl,
         loadActiveEventAvatarForHeader: loadActiveEventAvatarForHeader,

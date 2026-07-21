@@ -49,3 +49,28 @@ any other rejection should still fall back). The shared helper
 `DSDownloadController.triggerFileDownload(blob, filename)` now encapsulates this share-first/
 anchor-fallback logic — reuse it (and `triggerCanvasPngDownload` for canvases specifically) for
 any future file-save flow in this codebase instead of hand-rolling anchor downloads again.
+
+## 2026-07-21 — Map download regressed to a silent hang after the Android fix, on desktop Safari
+
+**What went wrong:** After the Android fix above switched `triggerCanvasPngDownload` from
+`canvas.toDataURL()` to `canvas.toBlob()`, a live repro on desktop Safari showed *zero* console
+output past the map-image-loaded log — not even the diagnostic logs added inside
+`triggerFileDownload()`. No exception, no success message, nothing: the whole download promise
+was hanging forever.
+
+**Root cause:** `HTMLCanvasElement.toBlob()` has long-standing WebKit bug reports of silently
+never invoking its callback for some canvases (bugs.webkit.org has multiple reports of this,
+particularly for larger canvases). Since `triggerFileDownload()` is only reachable from inside
+that callback, and the callback never ran, the `await triggerCanvasPngDownload(...)` in
+`generateMap()`/`generateMapWithoutBackground()` just hung indefinitely — worse than the
+original bug, since now not even the (misleading) success message appeared.
+
+**How to avoid repeating:** Don't trust `canvas.toBlob()` as the source of truth for
+canvas-to-file export in code that must work on Safari — its callback isn't guaranteed to fire.
+`canvas.toDataURL()` is synchronous and always completes (no async callback to hang on); decode
+it to a Blob manually (`DSDownloadController.dataUrlToBlob(dataUrl)`, base64 → `Uint8Array` →
+`Blob`) instead of depending on `toBlob()`. This keeps the Android fix (never put a large
+`data:` URI directly in an anchor `href`) while removing the new Safari hang risk entirely.
+When debugging a "nothing happens, no error" report on WebKit, remember the success path may
+log nothing at all — add explicit diagnostic logging at each branch of the flow rather than
+assuming silence means either success or a caught exception.
