@@ -63,6 +63,7 @@ function makeFirebaseMock(authUid) {
     where: () => ({ get: async () => ({ docs: [] }) }),
   });
   const firestoreFn = () => ({
+    settings: () => {},
     collection: collMock,
     doc: docMock,
   });

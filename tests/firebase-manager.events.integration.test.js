@@ -257,6 +257,7 @@ test('firebase manager gracefully falls back when user read is permission-denied
   };
 
   const firestoreFactory = () => ({
+    settings: () => {},
     collection: () => ({
       doc: () => makeDocRef(),
     }),
@@ -387,6 +388,7 @@ test('firebase manager keeps local defaults when game doc read is denied', async
   };
 
   const firestoreFactory = () => ({
+    settings: () => {},
     collection(name) {
       return makeCollection([name]);
     },
@@ -539,6 +541,7 @@ test('game metadata save falls back to app_config when games write is permission
   };
 
   const firestoreFactory = () => ({
+    settings: () => {},
     collection(name) {
       return makeCollection([name]);
     },
@@ -678,6 +681,7 @@ test('game metadata list reads app_config overrides when games collection read i
     onAuthStateChanged() {},
   };
   const firestoreFactory = () => ({
+    settings: () => {},
     collection(name) {
       return makeCollection([name]);
     },
@@ -857,6 +861,7 @@ test('loadUserData prefers game subcollections over legacy/root map payloads', a
   };
 
   const firestoreFactory = () => ({
+    settings: () => {},
     collection(name) {
       return makeCollection([name]);
     },
@@ -997,6 +1002,7 @@ test('saveUserData persists players and events into game subcollections for sele
   };
 
   const firestoreFactory = () => ({
+    settings: () => {},
     collection(name) {
       return makeCollection([name]);
     },
@@ -1211,6 +1217,7 @@ test('loadUserData alliance reads stay game-scoped and do not hit legacy root al
   };
 
   const firestoreFactory = () => ({
+    settings: () => {},
     collection(name) {
       return makeCollection([name]);
     },
@@ -1379,6 +1386,7 @@ test('loadUserData reads legacy alliance doc when game-scoped alliance is denied
   };
 
   const firestoreFactory = () => ({
+    settings: () => {},
     collection(name) {
       return makeCollection([name]);
     },
@@ -1524,6 +1532,7 @@ test('loadUserData falls back to personal source when alliance read is permissio
   };
 
   const firestoreFactory = () => ({
+    settings: () => {},
     collection(name) {
       return makeCollection([name]);
     },
@@ -1649,6 +1658,7 @@ test('loadUserData strict mode blocks legacy fallback when game-scoped profile i
   };
 
   const firestoreFactory = () => ({
+    settings: () => {},
     collection(name) {
       return makeCollection([name]);
     },
@@ -1806,6 +1816,7 @@ test('loadUserData recovers players from legacy root when game player map and su
   };
 
   const firestoreFactory = () => ({
+    settings: () => {},
     collection(name) {
       return makeCollection([name]);
     },
@@ -2051,6 +2062,7 @@ async function setupUploadScopeHarness(options) {
   };
 
   const firestoreFactory = () => ({
+    settings: () => {},
     collection(name) {
       return makeCollection([name]);
     },
@@ -2460,6 +2472,7 @@ async function setupUploadNoAllianceHarness() {
   };
 
   const firestoreFactory = () => ({
+    settings: () => {},
     collection(name) {
       return makeCollection([name]);
     },
@@ -2590,4 +2603,48 @@ test('non-alliance users cannot upload alliance database', async () => {
     global.FirebaseManager.uploadAlliancePlayerDatabase(harness.file, { gameId: 'desert_ops' }),
     (error) => error && error.success === false && String(error.error || '').includes('Not in an alliance')
   );
+});
+
+test('init() enables experimentalAutoDetectLongPolling so Safari does not fail the initial WebChannel handshake', () => {
+  global.window = global;
+  global.alert = () => {};
+  global.document = {
+    addEventListener() {},
+  };
+  global.FIREBASE_CONFIG = {
+    apiKey: 'x',
+    authDomain: 'x',
+    projectId: 'x',
+    storageBucket: 'x',
+    messagingSenderId: 'x',
+    appId: 'x',
+  };
+
+  const authMock = {
+    onAuthStateChanged() {},
+  };
+
+  let settingsArgs = null;
+  const firestoreFactory = () => ({
+    settings: (options) => { settingsArgs = options; },
+    collection: () => ({ doc: () => ({}) }),
+  });
+  firestoreFactory.FieldValue = {
+    serverTimestamp: () => ({}),
+    delete: () => ({}),
+  };
+
+  global.firebase = {
+    initializeApp() {},
+    auth: () => authMock,
+    firestore: firestoreFactory,
+  };
+  global.firebase.auth.GoogleAuthProvider = function GoogleAuthProvider() {};
+
+  require(firebaseInfraPath);
+  require(firebaseAuthModulePath);
+  require(firebaseModulePath);
+
+  assert.equal(global.FirebaseManager.init(), true);
+  assert.deepEqual(settingsArgs, { experimentalAutoDetectLongPolling: true });
 });

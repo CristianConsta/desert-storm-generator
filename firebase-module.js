@@ -2243,6 +2243,11 @@ const FirebaseManager = (function() {
             firebase.initializeApp(firebaseConfig);
             auth = firebase.auth();
             db = firebase.firestore();
+            // Safari (and some corporate proxies/VPNs/ad-blockers) can fail Firestore's
+            // default WebChannel streaming handshake with "Fetch API cannot load ... due
+            // to access control checks", requiring a page refresh to recover. Auto-detect
+            // long polling instead so those environments work on the very first load.
+            db.settings({ experimentalAutoDetectLongPolling: true });
             DSFirebaseInfra.setDb(db);
             DSFirebaseAuth.configure({
                 getAuth: function () { return auth; },
