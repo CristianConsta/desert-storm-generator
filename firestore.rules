@@ -15,7 +15,7 @@ service cloud.firestore {
 
     function authEmailLower() {
       return signedIn() && request.auth.token.email is string
-        ? lower(request.auth.token.email)
+        ? request.auth.token.email.lower()
         : '';
     }
 
@@ -42,14 +42,14 @@ service cloud.firestore {
     function isInviteePayload(data) {
       return signedIn()
         && data.invitedEmail is string
-        && lower(data.invitedEmail) == authEmailLower();
+        && data.invitedEmail.lower() == authEmailLower();
     }
 
     function isInvitationActor(data) {
       return signedIn()
         && (
-          (data.invitedBy is string && data.invitedBy == request.auth.uid)
-          || isInviteePayload(data)
+          isInviteePayload(data)
+          || (data.invitedBy is string && data.invitedBy == request.auth.uid)
         );
     }
 
@@ -347,8 +347,16 @@ service cloud.firestore {
 
         // Alliance invitations (moved from game-level to alliance-level)
         match /invitations/{invitationId} {
-          allow read: if signedIn()
+          allow get: if signedIn()
             && isInvitationActor(resource.data);
+          // Query-authorization for `list` can't depend on resource.data the way `get`
+          // can (Firestore must prove the rule from the query alone) — scope list to any
+          // alliance actor instead, same pattern used for shared_update_invites/candidates
+          // above. This lets sendInvitation()'s duplicate-check query (and any alliance
+          // member reviewing pending invites) actually run.
+          allow list: if isAllianceActor(
+            get(/databases/$(database)/documents/games/$(gameId)/alliances/$(allianceId)).data
+          );
           allow create: if signedIn()
             && request.resource.data.invitedBy is string
             && request.resource.data.invitedBy == request.auth.uid
@@ -608,6 +616,16 @@ service cloud.firestore {
     match /invitations/{invitationId} {
       allow read: if signedIn();
       allow write: if false;
+    }
+
+    // Collection-group rule for games/{gameId}/alliances/{allianceId}/invitations/{id}.
+    // The nested `match /invitations/{invitationId}` block above only authorizes reads of
+    // a fully-known path; it does NOT cover collectionGroup('invitations') queries (used by
+    // checkInvitations() to find a user's pending sent/received invites across alliances),
+    // which Firestore requires an explicit {path=**} rule for. Reuses isInvitationActor so
+    // both are always kept in sync.
+    match /{path=**}/invitations/{invitationId} {
+      allow read: if isInvitationActor(resource.data);
     }
   }
 }

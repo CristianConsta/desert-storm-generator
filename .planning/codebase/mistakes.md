@@ -142,3 +142,45 @@ rather than accumulating fixes on an untested premise. `triggerFileDownload()` n
 plain, predictable thing: `canvas.toDataURL()`/`XLSX.write()` → decode to `Blob` →
 `URL.createObjectURL()` → `<a download>`.click(). Don't reintroduce `navigator.share()` here
 unless a *specific, confirmed* repro (not a theory) shows the direct download path failing.
+
+## 2026-07-21 — Alliance invitations were structurally broken: `lower()` doesn't exist in Firestore rules, and list queries can't authorize on `resource.data`
+
+**What went wrong:** A user reported they could not invite an existing user to the alliance.
+Every session's console log throughout this whole debugging conversation showed "Invitation
+reads skipped (optional feature disabled by Firestore rules): Missing or insufficient
+permissions" — present from the very first log shared, unrelated to anything being worked on
+that day. Investigated properly this time (installed a JDK via `brew install openjdk` to run
+the real Firestore rules emulator, rather than reasoning about rule text) and found two
+separate, confirmed bugs, neither related to the download work:
+
+1. **`lower()` is not a Firestore rules function.** `authEmailLower()` and `isInviteePayload()`
+   called `lower(someString)` as a bare global function — Firestore rules only has
+   `someString.lower()` as a *method*. This has apparently never worked, for any invitee,
+   ever (confirmed via emulator: even a plain `.doc(id).get()` by the invitee errored with
+   `Function not found error: Name: [lower]`).
+2. **List/query rules can't depend on `resource.data` the way `get` rules can.** Firestore
+   must prove a `list`/`collectionGroup` rule true using only the query's `where()` filters,
+   not by inspecting each result document — so `allow read: if isInvitationActor(resource.data)`
+   worked for `.doc(id).get()` but silently denied `checkInvitations()`'s
+   `collectionGroup('invitations')` queries (no `{path=**}` rule existed for the collection
+   group at all) and `sendInvitation()`'s duplicate-check query (`invitedEmail == target &&
+   status == pending`, which can't be proven to satisfy `isInvitationActor` since the query
+   doesn't constrain `invitedBy` or match the current user's own email).
+
+**How to avoid repeating:** (1) Firestore rules string methods are always `.method()`, never
+bare functions — there is no global `lower()`/`upper()`/etc. (2) Rules tests must cover
+`.where()`/`.collectionGroup()` queries, not just `.doc(id).get()` — the existing test suite
+(`tests/firestore.rules.emulator.js`, `tests/firestore-rules/*.rules.test.js`) only tested
+single-doc reads, which is exactly why this went unnoticed. New:
+`tests/firestore-rules/invitations.rules.test.js` covers both list-query shapes. (3) For a
+`list` rule scoped to "any member of a known parent" (alliance, game, etc.), use
+`allow list: if isAllianceActor(get(fixed/parent/path).data)` — this doesn't depend on
+`resource.data` at all, so Firestore can always prove it (same pattern already used for
+`shared_update_invites`/`candidates` elsewhere in `firestore.rules`) — split `allow read` into
+separate `allow get`/`allow list` when the two need different provability strategies.
+(4) These rule changes are committed but **not yet deployed** — deploying to the live project
+needs `firebase deploy --only firestore:rules --project last-war-game-desert-storm`, which is
+a production security-policy change and needs explicit go-ahead before running.
+(5) `npm run test:rules`/the emulator was previously untested in this dev environment — Java
+wasn't installed. Installed via `brew install openjdk` (formula, not cask — the cask needs
+sudo and failed non-interactively).
