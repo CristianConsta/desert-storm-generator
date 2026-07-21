@@ -92,7 +92,7 @@ describe('DSDownloadController', () => {
         assert.equal(typeof ctrl.wireGuardedDownloadButton, 'function');
     });
 
-    it('wireGuardedDownloadButton ignores clicks while a previous download is still in flight (prevents double-firing navigator.share())', async () => {
+    it('wireGuardedDownloadButton ignores clicks while a previous download is still in flight', async () => {
         const button = { disabled: false, onclick: null };
         let callCount = 0;
         let resolveHandler;
@@ -362,55 +362,24 @@ describe('DSDownloadController', () => {
         }
     });
 
-    it('triggerFileDownload uses navigator.share() with a File when the Web Share API supports files (iOS Safari fix)', async () => {
+    it('triggerFileDownload always downloads directly via Blob+anchor, never the Web Share sheet', async () => {
+        // A share-first attempt was tried as an iOS fix, but it turned out the real bugs
+        // were the Android data-URI size limit and Safari's toBlob() callback never
+        // firing (both fixed elsewhere) — and users explicitly don't want a share sheet
+        // popping up instead of a direct download. navigator.share must never be called.
         const fakeBlob = { type: 'image/png' };
-        const originalFile = global.File;
-        global.File = class {
-            constructor(parts, name, options) {
-                this.parts = parts;
-                this.name = name;
-                this.type = options && options.type;
-            }
-        };
-        let sharedWith = null;
+        let shareCalled = false;
         mockNavigator({
-            share: (data) => {
-                sharedWith = data;
-                return Promise.resolve();
-            },
-            canShare: (data) => Array.isArray(data.files) && data.files.length === 1,
+            share: () => { shareCalled = true; return Promise.resolve(); },
+            canShare: () => true,
         });
-
-        let anchorCreated = false;
-        const originalCreateElement = document.createElement;
-        document.createElement = (tag) => {
-            if (tag === 'a') anchorCreated = true;
-            return originalCreateElement(tag);
-        };
-
-        try {
-            await global.DSDownloadController.triggerFileDownload(fakeBlob, 'team_A_test.png');
-
-            assert.ok(sharedWith, 'navigator.share should have been called');
-            assert.equal(sharedWith.files.length, 1);
-            assert.equal(sharedWith.files[0].name, 'team_A_test.png');
-            assert.ok(!anchorCreated, 'should not fall back to anchor download when share succeeds');
-        } finally {
-            document.createElement = originalCreateElement;
-            restoreNavigator();
-            global.File = originalFile;
-        }
-    });
-
-    it('triggerFileDownload falls back to Blob+anchor download when the Web Share API is unavailable', async () => {
-        const fakeBlob = { type: 'image/png' };
-        mockNavigator({});
 
         let createdObjectUrl = null;
         let capturedAnchor = null;
         const originalCreateObjectURL = global.URL.createObjectURL;
+        const originalRevokeObjectURL = global.URL.revokeObjectURL;
         global.URL.createObjectURL = () => {
-            createdObjectUrl = 'blob:mock-fallback-url';
+            createdObjectUrl = 'blob:mock-direct-url';
             return createdObjectUrl;
         };
         global.URL.revokeObjectURL = () => {};
@@ -424,82 +393,15 @@ describe('DSDownloadController', () => {
         try {
             await global.DSDownloadController.triggerFileDownload(fakeBlob, 'team_A_test.png');
 
-            assert.ok(capturedAnchor, 'anchor fallback should be used when navigator.share is unavailable');
+            assert.ok(!shareCalled, 'navigator.share should never be invoked');
+            assert.ok(capturedAnchor, 'an anchor element should have been created');
             assert.equal(capturedAnchor.href, createdObjectUrl);
             assert.equal(capturedAnchor.download, 'team_A_test.png');
         } finally {
             document.createElement = originalCreateElement;
             global.URL.createObjectURL = originalCreateObjectURL;
+            global.URL.revokeObjectURL = originalRevokeObjectURL;
             restoreNavigator();
-        }
-    });
-
-    it('triggerFileDownload falls back to Blob+anchor download when navigator.share() rejects (e.g. lost user activation)', async () => {
-        const fakeBlob = { type: 'image/png' };
-        const originalFile = global.File;
-        global.File = class {
-            constructor(parts, name, options) {
-                this.name = name;
-                this.type = options && options.type;
-            }
-        };
-        mockNavigator({
-            share: () => Promise.reject(Object.assign(new Error('not allowed'), { name: 'NotAllowedError' })),
-            canShare: () => true,
-        });
-
-        let capturedAnchor = null;
-        const originalCreateObjectURL = global.URL.createObjectURL;
-        global.URL.createObjectURL = () => 'blob:mock-retry-url';
-        global.URL.revokeObjectURL = () => {};
-        const originalCreateElement = document.createElement;
-        document.createElement = (tag) => {
-            const el = originalCreateElement(tag);
-            if (tag === 'a') capturedAnchor = el;
-            return el;
-        };
-
-        try {
-            await global.DSDownloadController.triggerFileDownload(fakeBlob, 'team_A_test.png');
-
-            assert.ok(capturedAnchor, 'anchor fallback should still fire when share() rejects with a non-abort error');
-            assert.equal(capturedAnchor.download, 'team_A_test.png');
-        } finally {
-            document.createElement = originalCreateElement;
-            global.URL.createObjectURL = originalCreateObjectURL;
-            restoreNavigator();
-            global.File = originalFile;
-        }
-    });
-
-    it('triggerFileDownload does not fall back when the user cancels the native share sheet (AbortError)', async () => {
-        const fakeBlob = { type: 'image/png' };
-        const originalFile = global.File;
-        global.File = class {
-            constructor(parts, name, options) {
-                this.name = name;
-                this.type = options && options.type;
-            }
-        };
-        mockNavigator({
-            share: () => Promise.reject(Object.assign(new Error('cancelled'), { name: 'AbortError' })),
-            canShare: () => true,
-        });
-
-        let anchorCreated = false;
-        const originalCreateElement = document.createElement;
-        document.createElement = (tag) => {
-            if (tag === 'a') anchorCreated = true;
-            return originalCreateElement(tag);
-        };
-
-        try {
-            await global.DSDownloadController.triggerFileDownload(fakeBlob, 'team_A_test.png');
-            assert.ok(!anchorCreated, 'cancelling the share sheet should not trigger a second, silent download');
-        } finally {
-            document.createElement = originalCreateElement;
-            restoreNavigator();
-            global.File = originalFile;
         }
     });
 });

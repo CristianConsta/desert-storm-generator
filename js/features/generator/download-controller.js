@@ -12,11 +12,10 @@
     // DOWNLOAD MODAL
     // ============================================================
 
-    // A second click while a download/share is still in flight can fire a competing
-    // navigator.share() call — only one can be active at a time, so the browser aborts
-    // one or both, surfacing as a spurious "cancelled by user". Disable the button for
-    // the duration of the handler's promise to make that impossible, and to give the user
-    // visible feedback that their click registered.
+    // A second click while a download is still in flight can start a second, overlapping
+    // canvas/workbook generation. Disable the button for the duration of the handler's
+    // promise to prevent that, and to give the user visible feedback that their click
+    // registered.
     function wireGuardedDownloadButton(button, handler) {
         button.onclick = function () {
             if (button.disabled) {
@@ -167,19 +166,7 @@
         await generateMap(team, assignments, statusId, deps);
     }
 
-    function canShareFile(file) {
-        if (typeof navigator === 'undefined' || typeof navigator.share !== 'function' || typeof navigator.canShare !== 'function') {
-            return false;
-        }
-        try {
-            return navigator.canShare({ files: [file] });
-        } catch (error) {
-            return false;
-        }
-    }
-
     function downloadBlobViaAnchor(blob, filename) {
-        console.log('[download] using Blob+anchor for', filename);
         var objectUrl = URL.createObjectURL(blob);
         var anchor = document.createElement('a');
         anchor.href = objectUrl;
@@ -188,31 +175,9 @@
         anchor.click();
         document.body.removeChild(anchor);
         URL.revokeObjectURL(objectUrl);
-        console.log('[download] anchor.click() fired for', filename);
     }
 
-    // iOS Safari can silently drop `<a download>` saves for content produced after any
-    // async work (network fetch, image load, etc.) runs between the tap and the click —
-    // the click still "succeeds" in JS but no file is written. navigator.share() hands the
-    // save off to the native share sheet instead, which iOS handles reliably in that case.
     function triggerFileDownload(blob, filename) {
-        var file = (typeof File === 'function') ? new File([blob], filename, { type: blob.type }) : null;
-        var shareSupported = !!(file && canShareFile(file));
-        console.log('[download] triggerFileDownload for', filename, '— Web Share API available:', shareSupported);
-
-        if (shareSupported) {
-            return navigator.share({ files: [file] }).then(function () {
-                console.log('[download] navigator.share() resolved (share sheet completed) for', filename);
-            }).catch(function (error) {
-                if (error && error.name === 'AbortError') {
-                    console.log('[download] navigator.share() cancelled by user for', filename);
-                    return;
-                }
-                console.warn('[download] navigator.share() failed, falling back to anchor download:', error);
-                downloadBlobViaAnchor(blob, filename);
-            });
-        }
-
         downloadBlobViaAnchor(blob, filename);
         return Promise.resolve();
     }

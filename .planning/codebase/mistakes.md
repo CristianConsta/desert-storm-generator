@@ -117,3 +117,28 @@ disable the button for the duration of the in-flight promise and ignore clicks w
 `DSDownloadController.wireGuardedDownloadButton(button, handler)` now encapsulates this — reuse
 it for the map and Excel download buttons (already wired) and any future one-at-a-time async
 button handler in this codebase.
+
+## 2026-07-21 — Removed the Web Share priority entirely: it was fixing a bug that was already fixed elsewhere
+
+**What went wrong:** The Web Share fix (added two entries above, under the "iOS Safari" theory)
+was never actually validated in isolation — by the time it shipped, `canvas.toBlob()`'s
+callback-never-fires bug was also still present, so every repro either hung silently (toBlob
+bug) or went through the share sheet (once toBlob was fixed) without ever testing what a plain
+`<a download>` + Blob would do on its own. A user then explicitly reported the share sheet
+popping up "instead of the file being downloaded" — not the UX they wanted on desktop Safari,
+which has full filesystem access and a normal Downloads folder.
+
+**Root cause of the *decision*, not a bug:** We reached for `navigator.share()` based on a
+plausible-sounding theory (WebKit expiring "user activation" across async gaps) without ever
+isolating whether it was actually necessary once the two *confirmed* bugs (Android's data-URI
+size limit, Safari's `toBlob()` callback) were fixed. Layering a UX-changing "fix" on top of an
+unconfirmed theory, before verifying the simpler fix was sufficient, cost an extra round trip
+and shipped behavior nobody asked for.
+
+**How to avoid repeating:** When a hypothesis-driven fix is layered on top of other unresolved
+bugs in the same code path, its own necessity can't be verified until those other bugs are
+fixed — treat it as unconfirmed and be ready to revert it once the ground truth changes,
+rather than accumulating fixes on an untested premise. `triggerFileDownload()` now does the
+plain, predictable thing: `canvas.toDataURL()`/`XLSX.write()` → decode to `Blob` →
+`URL.createObjectURL()` → `<a download>`.click(). Don't reintroduce `navigator.share()` here
+unless a *specific, confirmed* repro (not a theory) shows the direct download path failing.
