@@ -89,6 +89,33 @@ describe('DSDownloadController', () => {
         assert.equal(typeof ctrl.drawGeneratedMapHeader, 'function');
         assert.equal(typeof ctrl.generateMapWithoutBackground, 'function');
         assert.equal(typeof ctrl.generateMap, 'function');
+        assert.equal(typeof ctrl.wireGuardedDownloadButton, 'function');
+    });
+
+    it('wireGuardedDownloadButton ignores clicks while a previous download is still in flight (prevents double-firing navigator.share())', async () => {
+        const button = { disabled: false, onclick: null };
+        let callCount = 0;
+        let resolveHandler;
+        const handler = () => {
+            callCount += 1;
+            return new Promise((resolve) => { resolveHandler = resolve; });
+        };
+
+        global.DSDownloadController.wireGuardedDownloadButton(button, handler);
+
+        button.onclick();
+        assert.equal(callCount, 1);
+        assert.equal(button.disabled, true, 'button should be disabled while the download is in flight');
+
+        button.onclick();
+        assert.equal(callCount, 1, 'a click while busy must not invoke the handler again');
+
+        resolveHandler();
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        assert.equal(button.disabled, false, 'button should be re-enabled once the download settles');
+
+        button.onclick();
+        assert.equal(callCount, 2, 'a click after the previous download settled should invoke the handler again');
     });
 
     it('getMapHeaderTitle returns correct format for team A', () => {

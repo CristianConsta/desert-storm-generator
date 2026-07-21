@@ -12,6 +12,23 @@
     // DOWNLOAD MODAL
     // ============================================================
 
+    // A second click while a download/share is still in flight can fire a competing
+    // navigator.share() call — only one can be active at a time, so the browser aborts
+    // one or both, surfacing as a spurious "cancelled by user". Disable the button for
+    // the duration of the handler's promise to make that impossible, and to give the user
+    // visible feedback that their click registered.
+    function wireGuardedDownloadButton(button, handler) {
+        button.onclick = function () {
+            if (button.disabled) {
+                return;
+            }
+            button.disabled = true;
+            Promise.resolve(handler()).finally(function () {
+                button.disabled = false;
+            });
+        };
+    }
+
     function openDownloadModal(team, deps) {
         var isA = team === 'A';
         deps.setActiveDownloadTeam(team);
@@ -23,8 +40,8 @@
         }
         document.getElementById('downloadModalTitle').textContent = deps.t('download_modal_title', { team: team });
         document.getElementById('downloadModalSubtitle').textContent = deps.t('download_modal_subtitle', { team: team });
-        document.getElementById('downloadMapBtn').onclick = function () { downloadTeamMap(team, deps); };
-        document.getElementById('downloadExcelBtn').onclick = function () { downloadTeamExcel(team, deps); };
+        wireGuardedDownloadButton(document.getElementById('downloadMapBtn'), function () { return downloadTeamMap(team, deps); });
+        wireGuardedDownloadButton(document.getElementById('downloadExcelBtn'), function () { return downloadTeamExcel(team, deps); });
         var eventHistorySaveBtn = document.getElementById('eventHistorySaveBtn');
         if (eventHistorySaveBtn && global._eventHistoryController && typeof global._eventHistoryController.saveAssignmentAsHistory === 'function') {
             eventHistorySaveBtn.classList.remove('hidden');
@@ -1118,6 +1135,7 @@
 
     global.DSDownloadController = {
         openDownloadModal: openDownloadModal,
+        wireGuardedDownloadButton: wireGuardedDownloadButton,
         closeDownloadModal: closeDownloadModal,
         downloadTeamExcel: downloadTeamExcel,
         downloadTeamMap: downloadTeamMap,

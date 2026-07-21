@@ -74,3 +74,46 @@ it to a Blob manually (`DSDownloadController.dataUrlToBlob(dataUrl)`, base64 →
 When debugging a "nothing happens, no error" report on WebKit, remember the success path may
 log nothing at all — add explicit diagnostic logging at each branch of the flow rather than
 assuming silence means either success or a caught exception.
+
+## 2026-07-21 — New users hit Firestore connection errors on first load, needing a refresh
+
+**What went wrong:** New users (and a repro on desktop Safari) saw `Fetch API cannot load
+https://firestore.googleapis.com/.../Listen/channel?... due to access control checks` and a
+matching `Write/channel` error in the console on first page load. The app recovered after a few
+manual refreshes, but this happened to every new user.
+
+**Root cause:** `firebase-module.js`'s `init()` called `db = firebase.firestore()` with zero
+`.settings()` configuration. Firestore's JS SDK defaults to a WebChannel streaming transport for
+its realtime Listen/Write channels; Safari (and some corporate proxies/VPNs/ad-blocking setups)
+can fail that initial streaming handshake outright, and the SDK has to detect the failure and
+fall back on a subsequent attempt — which is why reloading "fixed" it. This is a widely
+documented Firebase-JS-SDK + Safari interaction, not specific to this app's code.
+
+**How to avoid repeating:** Call `db.settings({ experimentalAutoDetectLongPolling: true })`
+immediately after `firebase.firestore()` and before any other Firestore operation. This makes
+the SDK detect streaming-hostile environments up front and use long-polling from the very first
+load instead of failing the WebChannel handshake first. Covered by
+`tests/firebase-manager.events.integration.test.js` — any test file that mocks
+`firebase.firestore()` for `init()` must include a `settings: () => {}` stub on the returned
+object or `init()`'s try/catch will silently swallow the resulting TypeError and return `false`.
+
+## 2026-07-21 — Double-clicking a download button could race two navigator.share() calls
+
+**What went wrong:** A live repro captured the console logging `navigator.share() cancelled by
+user` twice in a row for the same map PNG filename before a single share sheet had actually been
+dismissed — with a screenshot showing the share sheet still open and interactive at the time.
+
+**Root cause:** The Web Share API only allows one `navigator.share()` call in flight per page;
+`openDownloadModal()`'s buttons had no guard against a second click while the first download was
+still running (generating the canvas/workbook, then awaiting `navigator.share()`). Since there
+was also no visible "in progress" affordance on the buttons, a user unsure whether their first
+click registered would naturally click again — firing a second `triggerFileDownload()` whose
+`navigator.share()` call races the first, and Safari reports the resulting conflict as an
+`AbortError`, which our code (reasonably, but incorrectly here) interpreted as "user cancelled".
+
+**How to avoid repeating:** Any button that kicks off an async, non-reentrant browser API
+(Web Share, WebUSB/WebBluetooth pickers, `showSaveFilePicker`, etc.) needs a busy-guard:
+disable the button for the duration of the in-flight promise and ignore clicks while disabled.
+`DSDownloadController.wireGuardedDownloadButton(button, handler)` now encapsulates this — reuse
+it for the map and Excel download buttons (already wired) and any future one-at-a-time async
+button handler in this codebase.

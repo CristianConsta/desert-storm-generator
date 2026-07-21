@@ -2972,6 +2972,7 @@
             firebase.initializeApp(firebaseConfig);
             auth = firebase.auth();
             db = firebase.firestore();
+            db.settings({ experimentalAutoDetectLongPolling: true });
             DSFirebaseInfra.setDb(db);
             DSFirebaseAuth.configure({
               getAuth: function() {
@@ -12568,6 +12569,17 @@
           }
           return deps && typeof deps.getSubstitutesB === "function" ? deps.getSubstitutesB() : [];
         }
+        function wireGuardedDownloadButton(button, handler) {
+          button.onclick = function() {
+            if (button.disabled) {
+              return;
+            }
+            button.disabled = true;
+            Promise.resolve(handler()).finally(function() {
+              button.disabled = false;
+            });
+          };
+        }
         function openDownloadModal(team, deps) {
           var isA = team === "A";
           deps.setActiveDownloadTeam(team);
@@ -12578,12 +12590,12 @@
           }
           document.getElementById("downloadModalTitle").textContent = deps.t("download_modal_title", { team });
           document.getElementById("downloadModalSubtitle").textContent = deps.t("download_modal_subtitle", { team });
-          document.getElementById("downloadMapBtn").onclick = function() {
-            downloadTeamMap(team, deps);
-          };
-          document.getElementById("downloadExcelBtn").onclick = function() {
-            downloadTeamExcel(team, deps);
-          };
+          wireGuardedDownloadButton(document.getElementById("downloadMapBtn"), function() {
+            return downloadTeamMap(team, deps);
+          });
+          wireGuardedDownloadButton(document.getElementById("downloadExcelBtn"), function() {
+            return downloadTeamExcel(team, deps);
+          });
           var eventHistorySaveBtn = document.getElementById("eventHistorySaveBtn");
           if (eventHistorySaveBtn && global2._eventHistoryController && typeof global2._eventHistoryController.saveAssignmentAsHistory === "function") {
             eventHistorySaveBtn.classList.remove("hidden");
@@ -13534,6 +13546,7 @@
         }
         global2.DSDownloadController = {
           openDownloadModal,
+          wireGuardedDownloadButton,
           closeDownloadModal,
           downloadTeamExcel,
           downloadTeamMap,
