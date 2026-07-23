@@ -533,7 +533,7 @@ Generate shared invite: Players Management invite button → app.js `onInviteBut
   → Firestore write: shared_update_invites/{inviteId}
   → URL to player-update.html?shared={inviteId}
 
-Player-facing: player-update.html?shared=... → js/player-update/player-update.js
+Player-facing: player-update.html?shared=...  or  ?token=... (legacy links) → js/player-update/player-update.js
   → validates token → player fills form → creates pending_updates doc
 
 Review: #navPlayerUpdatesBtn → refreshPlayerUpdatesPanel()

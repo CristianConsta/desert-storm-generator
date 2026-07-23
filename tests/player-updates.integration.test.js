@@ -28,8 +28,6 @@ function loadModules() {
     };
     global._domStubs = {};
 
-    // Crypto for generateToken
-    global.crypto = require('node:crypto').webcrypto;
     global.location = { origin: 'https://example.com' };
 
     // App state globals the controller reads
