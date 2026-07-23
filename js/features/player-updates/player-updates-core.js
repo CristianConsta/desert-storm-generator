@@ -1,61 +1,5 @@
 (function initFeaturePlayerUpdatesCore(global) {
     var VALID_TROOPS = ['Tank', 'Aero', 'Missile'];
-    var DEFAULT_EXPIRY_HOURS = 48;
-    var TOKEN_HEX_LENGTH = 32; // 32 hex chars = 16 bytes
-
-    function generateToken() {
-        var bytes = new Uint8Array(TOKEN_HEX_LENGTH / 2);
-        crypto.getRandomValues(bytes);
-        return Array.from(bytes).map(function (b) {
-            return b.toString(16).padStart(2, '0');
-        }).join('');
-    }
-
-    function buildTokenDoc(playerName, allianceId, gameId, createdByUid, options) {
-        var opts = options || {};
-        var expiryHours = typeof opts.expiryHours === 'number' ? opts.expiryHours : DEFAULT_EXPIRY_HOURS;
-        var now = new Date();
-        var expiresAt = new Date(now.getTime() + expiryHours * 60 * 60 * 1000);
-
-        return {
-            token: generateToken(),
-            playerName: playerName || null,
-            allianceId: allianceId || null,
-            gameId: gameId || null,
-            createdByUid: createdByUid || null,
-            createdAt: now,
-            expiresAt: expiresAt,
-            used: false,
-            usedAt: null,
-            usedByAnonUid: null,
-            linkedEventId: opts.linkedEventId || null,
-            currentSnapshot: opts.currentSnapshot || {},
-        };
-    }
-
-    function buildUpdateLink(token, allianceId, lang, gameId) {
-        var origin = global.location && global.location.origin ? global.location.origin : '';
-        var link = (
-            origin +
-            '/player-update.html' +
-            '?token=' + encodeURIComponent(token) +
-            '&alliance=' + encodeURIComponent(allianceId) +
-            '&lang=' + encodeURIComponent(lang)
-        );
-        if (gameId) {
-            link += '&gid=' + encodeURIComponent(gameId);
-        }
-        return link;
-    }
-
-    function formatLinksForMessaging(players) {
-        if (!Array.isArray(players)) {
-            return '';
-        }
-        return players.map(function (p) {
-            return (p.playerName || '') + ': ' + (p.link || '');
-        }).join('\n');
-    }
 
     function validateProposedValues(proposed) {
         var errors = [];
@@ -170,10 +114,6 @@
     }
 
     global.DSFeaturePlayerUpdatesCore = {
-        generateToken: generateToken,
-        buildTokenDoc: buildTokenDoc,
-        buildUpdateLink: buildUpdateLink,
-        formatLinksForMessaging: formatLinksForMessaging,
         validateProposedValues: validateProposedValues,
         normalizeProposedValues: normalizeProposedValues,
         proposedValuesEqual: proposedValuesEqual,

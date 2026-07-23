@@ -16,74 +16,6 @@ function loadModule() {
 }
 
 // ---------------------------------------------------------------------------
-// generateToken
-// ---------------------------------------------------------------------------
-
-test('generateToken: returns a string of length 32', () => {
-    loadModule();
-    const token = global.DSFeaturePlayerUpdatesCore.generateToken();
-    assert.equal(typeof token, 'string');
-    assert.equal(token.length, 32);
-});
-
-test('generateToken: contains only hex characters [0-9a-f]', () => {
-    loadModule();
-    const token = global.DSFeaturePlayerUpdatesCore.generateToken();
-    assert.match(token, /^[0-9a-f]+$/);
-});
-
-test('generateToken: two consecutive calls return different values', () => {
-    loadModule();
-    const a = global.DSFeaturePlayerUpdatesCore.generateToken();
-    const b = global.DSFeaturePlayerUpdatesCore.generateToken();
-    assert.notEqual(a, b);
-});
-
-// ---------------------------------------------------------------------------
-// buildUpdateLink
-// ---------------------------------------------------------------------------
-
-test('buildUpdateLink: contains ?token= param', () => {
-    loadModule();
-    const link = global.DSFeaturePlayerUpdatesCore.buildUpdateLink('abc', 'alliance1', 'en', 'last_war');
-    assert.ok(link.includes('?token=abc'), `Expected ?token=abc in: ${link}`);
-});
-
-test('buildUpdateLink: contains &alliance= param', () => {
-    loadModule();
-    const link = global.DSFeaturePlayerUpdatesCore.buildUpdateLink('abc', 'alliance1', 'en', 'last_war');
-    assert.ok(link.includes('&alliance=alliance1'), `Expected &alliance=alliance1 in: ${link}`);
-});
-
-test('buildUpdateLink: contains &lang= param', () => {
-    loadModule();
-    const link = global.DSFeaturePlayerUpdatesCore.buildUpdateLink('abc', 'alliance1', 'fr', 'last_war');
-    assert.ok(link.includes('&lang=fr'), `Expected &lang=fr in: ${link}`);
-});
-
-test('buildUpdateLink: contains &gid= param when gameId is provided', () => {
-    loadModule();
-    const link = global.DSFeaturePlayerUpdatesCore.buildUpdateLink('abc', 'alliance1', 'fr', 'last_war');
-    assert.ok(link.includes('&gid=last_war'), `Expected &gid=last_war in: ${link}`);
-});
-
-test('buildUpdateLink: special chars in params are encoded', () => {
-    loadModule();
-    const link = global.DSFeaturePlayerUpdatesCore.buildUpdateLink('a b+c', 'all&id', 'en', 'game id');
-    // token, alliance and gid should be URL-encoded
-    assert.ok(!link.includes(' '), 'Spaces should be encoded');
-    assert.ok(link.includes('a%20b'), 'Space in token should be %20');
-    assert.ok(link.includes('all%26id'), '& in alliance should be %26');
-    assert.ok(link.includes('game%20id'), 'Space in gid should be %20');
-});
-
-test('buildUpdateLink: buildUpdateLink("abc", "alliance1", "fr", "last_war") produces correct query string', () => {
-    loadModule();
-    const link = global.DSFeaturePlayerUpdatesCore.buildUpdateLink('abc', 'alliance1', 'fr', 'last_war');
-    assert.ok(link.endsWith('?token=abc&alliance=alliance1&lang=fr&gid=last_war'), `Link should end with correct query: ${link}`);
-});
-
-// ---------------------------------------------------------------------------
 // validateProposedValues
 // ---------------------------------------------------------------------------
 
@@ -216,59 +148,6 @@ test('calculateDeltas: result has power, thp, troops keys', () => {
     assert.ok('power' in result);
     assert.ok('thp' in result);
     assert.ok('troops' in result);
-});
-
-// ---------------------------------------------------------------------------
-// formatLinksForMessaging
-// ---------------------------------------------------------------------------
-
-test('formatLinksForMessaging: contains all player names', () => {
-    loadModule();
-    const players = [
-        { playerName: 'Alice', link: 'https://example.com/player-update.html?token=abc&aid=a1&lang=en' },
-        { playerName: 'Bob', link: 'https://example.com/player-update.html?token=def&aid=a1&lang=en' },
-    ];
-    const result = global.DSFeaturePlayerUpdatesCore.formatLinksForMessaging(players);
-    assert.ok(result.includes('Alice'), 'Should contain Alice');
-    assert.ok(result.includes('Bob'), 'Should contain Bob');
-});
-
-test('formatLinksForMessaging: contains all links', () => {
-    loadModule();
-    const players = [
-        { playerName: 'Alice', link: 'https://example.com/player-update.html?token=abc' },
-        { playerName: 'Bob', link: 'https://example.com/player-update.html?token=def' },
-    ];
-    const result = global.DSFeaturePlayerUpdatesCore.formatLinksForMessaging(players);
-    assert.ok(result.includes('token=abc'));
-    assert.ok(result.includes('token=def'));
-});
-
-test('formatLinksForMessaging: each player is on its own line', () => {
-    loadModule();
-    const players = [
-        { playerName: 'Alice', link: 'https://example.com/?token=abc' },
-        { playerName: 'Bob', link: 'https://example.com/?token=def' },
-        { playerName: 'Charlie', link: 'https://example.com/?token=ghi' },
-    ];
-    const result = global.DSFeaturePlayerUpdatesCore.formatLinksForMessaging(players);
-    const lines = result.split('\n');
-    assert.equal(lines.length, 3, 'Should have 3 lines, one per player');
-    assert.ok(lines[0].includes('Alice'));
-    assert.ok(lines[1].includes('Bob'));
-    assert.ok(lines[2].includes('Charlie'));
-});
-
-test('formatLinksForMessaging: empty array returns empty string', () => {
-    loadModule();
-    const result = global.DSFeaturePlayerUpdatesCore.formatLinksForMessaging([]);
-    assert.equal(result, '');
-});
-
-test('formatLinksForMessaging: non-array returns empty string', () => {
-    loadModule();
-    const result = global.DSFeaturePlayerUpdatesCore.formatLinksForMessaging(null);
-    assert.equal(result, '');
 });
 
 // ---------------------------------------------------------------------------

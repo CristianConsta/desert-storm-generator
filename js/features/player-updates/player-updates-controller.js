@@ -70,21 +70,6 @@
         });
     }
 
-    // Deprecated on purpose:
-    // Invite generation is allowed only from Players Management invite button flow.
-    function openTokenGenerationModal() {
-        var message = (global.DSI18N && global.DSI18N.t)
-            ? global.DSI18N.t('player_updates_invite_from_players_page_only')
-            : 'Player update invites can only be generated from Players Management.';
-        if (global.console && typeof global.console.warn === 'function') {
-            global.console.warn('[PlayerUpdatesController] Blocked legacy invite generation path. Use Players Management invite button.');
-        }
-        if (typeof global.alert === 'function') {
-            global.alert(message);
-        }
-        return { ok: false, error: 'invite_generation_restricted' };
-    }
-
     // Show alliance target selection modal. Returns Promise<'personal'|'alliance'|'both'|null>.
     // R2 fix: includes Escape key handler
     function _showApplyTargetPrompt() {
@@ -585,7 +570,6 @@
     global.DSFeaturePlayerUpdatesController = {
         init: init,
         subscribeBadge: subscribeBadge,
-        openTokenGenerationModal: openTokenGenerationModal,
         saveReviewedProposedValues: saveReviewedProposedValues,
         approveUpdate: approveUpdate,
         rejectUpdate: rejectUpdate,

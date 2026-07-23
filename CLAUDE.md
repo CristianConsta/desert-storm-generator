@@ -528,12 +528,12 @@ Finalize: finalizeAttendance(historyId)
 Init: setDataLoadCallback → DSFeaturePlayerUpdatesController.init(FirebaseService)
       setAllianceDataCallback → _playerUpdatesController.subscribeBadge()
 
-Generate tokens: DSFeaturePlayerUpdatesController.openTokenGenerationModal(playerNames)
-  → DSFeaturePlayerUpdatesCore.buildTokenDoc() → gateway.saveTokenBatch()
-  → Firestore write: update_tokens/{tokenId}
-  → DSFeaturePlayerUpdatesCore.buildUpdateLink(tokenHex) → URL to player-update.html
+Generate shared invite: Players Management invite button → app.js `onInviteButtonClick`/`onSharedInviteClick` handlers
+  → FirebaseService.createPersonalSharedUpdateInvite() / createAllianceSharedUpdateInvite()
+  → Firestore write: shared_update_invites/{inviteId}
+  → URL to player-update.html?shared={inviteId}
 
-Player-facing: player-update.html?token=... → js/player-update/player-update.js
+Player-facing: player-update.html?shared=... → js/player-update/player-update.js
   → validates token → player fills form → creates pending_updates doc
 
 Review: #navPlayerUpdatesBtn → refreshPlayerUpdatesPanel()
