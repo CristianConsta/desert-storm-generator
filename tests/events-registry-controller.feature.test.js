@@ -17,6 +17,14 @@ function createGlobal() {
             upsertEvent: (id, def) => { eventRegistry[id] = def; },
             removeEvent: (id) => { if (eventRegistry[id]) { delete eventRegistry[id]; return true; } return false; },
             slugifyEventId: (name) => name.toLowerCase().replace(/[^a-z0-9]+/g, '_'),
+            normalizeEventId: (value) => typeof value === 'string'
+                ? value.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '')
+                : '',
+        },
+        DSCoreGames: {
+            normalizeGameId: (value) => typeof value === 'string'
+                ? value.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '')
+                : '',
         },
         DSCoreBuildings: {
             normalizeBuildingPositions: (pos) => pos || {},

@@ -100,5 +100,6 @@
         isKnownGame: isKnownGame,
         isGameMetadataSuperAdmin: isGameMetadataSuperAdmin,
         canEditGameMetadata: canEditGameMetadata,
+        normalizeGameId: normalizeGameId,
     };
 })(window);

@@ -406,14 +406,9 @@
     }
 
     function normalizeGameId(value) {
-        if (typeof value !== 'string') {
-            return '';
-        }
-        return value
-            .trim()
-            .toLowerCase()
-            .replace(/[^a-z0-9]+/g, '_')
-            .replace(/^_+|_+$/g, '');
+        return (global.DSCoreGames && typeof global.DSCoreGames.normalizeGameId === 'function')
+            ? global.DSCoreGames.normalizeGameId(value)
+            : '';
     }
 
     function normalizeUid(value) {
@@ -679,10 +674,9 @@
     }
 
     function normalizeEventId(value) {
-        if (typeof value !== 'string') {
-            return '';
-        }
-        return value.trim();
+        return (global.DSCoreEvents && typeof global.DSCoreEvents.normalizeEventId === 'function')
+            ? global.DSCoreEvents.normalizeEventId(value)
+            : '';
     }
 
     function resolveEventScopedContext(methodName, eventIdOrContext, contextMaybe) {

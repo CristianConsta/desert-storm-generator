@@ -8,6 +8,8 @@ const playersGatewayPath = path.resolve(__dirname, '../js/shared/data/firebase-p
 const eventsGatewayPath = path.resolve(__dirname, '../js/shared/data/firebase-events-gateway.js');
 const allianceGatewayPath = path.resolve(__dirname, '../js/shared/data/firebase-alliance-gateway.js');
 const notificationsGatewayPath = path.resolve(__dirname, '../js/shared/data/firebase-notifications-gateway.js');
+const coreEventsPath = path.resolve(__dirname, '../js/core/events.js');
+const coreGamesPath = path.resolve(__dirname, '../js/core/games.js');
 const modulePath = path.resolve(__dirname, '../js/services/firebase-service.js');
 
 function loadModule() {
@@ -18,6 +20,8 @@ function loadModule() {
   delete global.DSSharedFirebaseEventsGateway;
   delete global.DSSharedFirebaseAllianceGateway;
   delete global.DSSharedFirebaseNotificationsGateway;
+  delete global.DSCoreEvents;
+  delete global.DSCoreGames;
   delete global.FirebaseService;
   delete require.cache[require.resolve(gatewayUtilsPath)];
   delete require.cache[require.resolve(authGatewayPath)];
@@ -25,6 +29,8 @@ function loadModule() {
   delete require.cache[require.resolve(eventsGatewayPath)];
   delete require.cache[require.resolve(allianceGatewayPath)];
   delete require.cache[require.resolve(notificationsGatewayPath)];
+  delete require.cache[require.resolve(coreEventsPath)];
+  delete require.cache[require.resolve(coreGamesPath)];
   delete require.cache[require.resolve(modulePath)];
   require(gatewayUtilsPath);
   require(authGatewayPath);
@@ -32,6 +38,8 @@ function loadModule() {
   require(eventsGatewayPath);
   require(allianceGatewayPath);
   require(notificationsGatewayPath);
+  require(coreEventsPath);
+  require(coreGamesPath);
   require(modulePath);
 }
 
@@ -125,7 +133,32 @@ test('firebase service returns safe fallbacks when manager is missing', async ()
     MULTIGAME_GAME_SELECTOR_ENABLED: false,
   });
   assert.equal(global.FirebaseService.isFeatureFlagEnabled('MULTIGAME_ENABLED'), false);
-  assert.deepEqual(global.FirebaseService.listAvailableGames(), []);
+  assert.deepEqual(global.FirebaseService.listAvailableGames(), [{
+    id: 'last_war',
+    name: 'Last War: Survival',
+    logo: '',
+    company: 'FirstFun',
+    troopModel: {
+      categories: [
+        { id: 'tank', label: 'Tank' },
+        { id: 'aero', label: 'Aero' },
+        { id: 'missile', label: 'Missile' },
+      ],
+      fallbackCategory: 'unknown',
+    },
+    playerImportSchema: {
+      id: 'last_war_players_v1',
+      templateFileName: 'player_database_template.xlsx',
+      sheetName: 'Players',
+      headerRowIndex: 9,
+      columns: [
+        { key: 'name', header: 'Player Name', required: true },
+        { key: 'power', header: 'E1 Total Power(M)', required: true },
+        { key: 'troops', header: 'E1 Troops', required: true },
+      ],
+    },
+    assignmentAlgorithmIds: ['balanced_round_robin'],
+  }]);
   assert.deepEqual(global.FirebaseService.getActiveGame(), { gameId: '', source: 'none' });
   const setActiveResult = global.FirebaseService.setActiveGame('last_war');
   assert.equal(setActiveResult.success, true);
@@ -214,4 +247,15 @@ test('firebase service delegates calls to FirebaseManager', async () => {
     fallbackReadHitCount: 3,
   });
   assert.equal(global.FirebaseService.resetObservabilityCounters(), true);
+});
+
+test('firebase service normalizeEventId fully normalizes eventId (not just trim)', () => {
+  let capturedEventId = null;
+  global.FirebaseManager = {
+    getEventMeta: (eventId) => { capturedEventId = eventId; return null; },
+  };
+  loadModule();
+
+  global.FirebaseService.getEventMeta('Desert Storm!', { gameId: 'last_war' });
+  assert.equal(capturedEventId, 'desert_storm', 'eventId must be lowercased and stripped of special characters before reaching FirebaseManager');
 });
