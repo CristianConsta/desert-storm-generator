@@ -3,7 +3,7 @@
   "private": true,
   "description": "One-time tooling for Firebase data migration",
   "scripts": {
-    "lint": "eslint --cache app.js firebase-module.js js/**/*.js tests/**/*.js e2e/**/*.js",
+    "lint": "eslint --cache app.js firebase-module.js \"js/**/*.js\" \"tests/**/*.js\" \"e2e/**/*.js\"",
     "lint:ci": "npm run lint",
     "check:budgets": "node scripts/check-size-budgets.js",
     "test": "npm run test:unit",

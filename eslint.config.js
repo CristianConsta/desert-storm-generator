@@ -26,6 +26,18 @@ module.exports = [
     },
   },
   {
+    files: [
+      'js/features/buildings/coordinate-picker-controller.js',
+      'js/features/generator/download-controller.js',
+    ],
+    languageOptions: {
+      globals: {
+        DSThemeColors: 'readonly',
+        XLSX: 'readonly',
+      },
+    },
+  },
+  {
     files: ['**/*.mjs', 'js/**/*.mjs'],
     languageOptions: {
       sourceType: 'module',
