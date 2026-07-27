@@ -26,8 +26,15 @@ service cloud.firestore {
     }
 
     function isAllianceMemberPayload(data, uid) {
+      // Map-index access ("data.members[uid]") throws instead of returning
+      // null when uid is absent from the map — the "uid in data.members"
+      // check must short-circuit first so non-members (including anonymous
+      // callers) get a clean `false` rather than an evaluation error, which
+      // would otherwise reject the whole `isAllianceMember(...) || (...)`
+      // expression regardless of what the other branch evaluates to.
       return data != null
         && data.members is map
+        && (uid in data.members)
         && data.members[uid] != null;
     }
 
