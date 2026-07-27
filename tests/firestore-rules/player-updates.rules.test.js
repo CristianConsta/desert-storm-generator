@@ -47,6 +47,11 @@ test.before(async () => {
     });
 
     // Seed update_tokens docs used by the "read" test block below.
+    // submissionCount/maxSubmissions are included on every token doc because
+    // production always writes them (see firebase-module.js createUpdateToken());
+    // tokenHasRemainingSubmissions() throws (rather than defaulting) when a
+    // doc is missing them entirely, since Firestore rules map/field access
+    // errors on an absent key instead of returning null.
     // Seed a valid (unexpired, unused) token
     await seedDoc(`alliances/${ALLIANCE_ID}/update_tokens/token_valid`, {
         token: 'valid_token_1234',
@@ -55,6 +60,8 @@ test.before(async () => {
         gameId: 'last_war',
         used: false,
         expiresAt: futureTimestamp(),
+        submissionCount: 0,
+        maxSubmissions: 3,
     });
 
     // Seed an expired token
@@ -65,6 +72,8 @@ test.before(async () => {
         gameId: 'last_war',
         used: false,
         expiresAt: pastTimestamp(),
+        submissionCount: 0,
+        maxSubmissions: 3,
     });
 
     // Seed an already-used token
@@ -75,6 +84,8 @@ test.before(async () => {
         gameId: 'last_war',
         used: true,
         expiresAt: futureTimestamp(),
+        submissionCount: 1,
+        maxSubmissions: 3,
     });
 
     // Seed a token for scope-violation tests (used=false, but wrong playerName/gameId attempts)
@@ -85,6 +96,8 @@ test.before(async () => {
         gameId: 'last_war',
         used: false,
         expiresAt: futureTimestamp(),
+        submissionCount: 0,
+        maxSubmissions: 3,
     });
 
     // Seed a personal update token for PERSONAL_UID
@@ -96,6 +109,8 @@ test.before(async () => {
         gameId: 'last_war',
         used: false,
         expiresAt: futureTimestamp(),
+        submissionCount: 0,
+        maxSubmissions: 3,
     });
 
     // Seed a used personal token for negative test
@@ -107,6 +122,8 @@ test.before(async () => {
         gameId: 'last_war',
         used: true,
         expiresAt: futureTimestamp(),
+        submissionCount: 1,
+        maxSubmissions: 3,
     });
 
     // Seed pending_updates doc used by the "read/update by alliance member" test block below.
@@ -176,6 +193,8 @@ test('update_tokens: alliance member can create update_tokens', async () => {
             used: false,
             usedAt: null,
             usedByAnonUid: null,
+            submissionCount: 0,
+            maxSubmissions: 3,
         })
     );
 });
@@ -261,7 +280,11 @@ test('update_tokens: alliance member can read any token', async () => {
 // ---------------------------------------------------------------------------
 
 test('update_tokens: anonymous user can update token to mark as used (only used, usedAt, usedByAnonUid)', async () => {
-    // Seed a fresh valid token to update
+    // Seed a fresh valid token with maxSubmissions: 1, so this single
+    // submission both increments submissionCount and reaches the limit —
+    // matching how js/player-update/player-update.js writes tokenUpdate
+    // (submissionCount/lastSubmittedAt/lastSubmittedByAnonUid always; used/usedAt
+    // only once the limit is reached).
     await seedDoc(`alliances/${ALLIANCE_ID}/update_tokens/token_to_use`, {
         token: 'token_to_use_value',
         playerName: 'Diana',
@@ -270,14 +293,19 @@ test('update_tokens: anonymous user can update token to mark as used (only used,
         expiresAt: futureTimestamp(),
         usedAt: null,
         usedByAnonUid: null,
+        submissionCount: 0,
+        maxSubmissions: 1,
     });
 
     const db = anonDb('anon_uid_uses_token');
     await assertSucceeds(
         db.doc(`alliances/${ALLIANCE_ID}/update_tokens/token_to_use`).update({
+            submissionCount: 1,
+            lastSubmittedAt: new Date(),
+            lastSubmittedByAnonUid: 'anon_uid_uses_token',
+            usedByAnonUid: 'anon_uid_uses_token',
             used: true,
             usedAt: new Date(),
-            usedByAnonUid: 'anon_uid_uses_token',
         })
     );
 });
@@ -292,11 +320,14 @@ test('update_tokens: anonymous user CANNOT update token playerName field', async
         expiresAt: futureTimestamp(),
         usedAt: null,
         usedByAnonUid: null,
+        submissionCount: 0,
+        maxSubmissions: 3,
     });
 
     const db = anonDb('anon_uid_tampers');
     await assertFails(
         db.doc(`alliances/${ALLIANCE_ID}/update_tokens/token_tamper`).update({
+            submissionCount: 1,
             used: true,
             usedAt: new Date(),
             usedByAnonUid: 'anon_uid_tampers',
