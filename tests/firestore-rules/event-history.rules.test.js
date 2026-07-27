@@ -20,12 +20,18 @@ const HISTORY_ID = 'history_doc_1';
 let testEnv;
 
 test.before(async () => {
-    testEnv = await initializeTestEnvironment({
-        projectId: PROJECT_ID,
-        firestore: {
-            rules: fs.readFileSync(RULES_PATH, 'utf8'),
-        },
-    });
+    try {
+        testEnv = await initializeTestEnvironment({
+            projectId: PROJECT_ID,
+            firestore: {
+                rules: fs.readFileSync(RULES_PATH, 'utf8'),
+            },
+        });
+        console.error('DIAGNOSTIC: initializeTestEnvironment succeeded, testEnv is', typeof testEnv);
+    } catch (err) {
+        console.error('DIAGNOSTIC: initializeTestEnvironment threw:', err && err.stack ? err.stack : err);
+        throw err;
+    }
 });
 
 test.after(async () => {
