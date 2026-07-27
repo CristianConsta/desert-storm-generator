@@ -151,7 +151,7 @@ test('invitation create requires alliance actor; read/update limited to inviter 
   const outsider = authedDb('outsider', 'outsider@example.com');
 
   await assertSucceeds(
-    inviter.doc('games/last_war/invitations/inv1').set({
+    inviter.doc('games/last_war/alliances/a1/invitations/inv1').set({
       gameId: 'last_war',
       allianceId: 'a1',
       invitedBy: 'owner',
@@ -161,31 +161,31 @@ test('invitation create requires alliance actor; read/update limited to inviter 
   );
 
   await assertSucceeds(
-    inviter.doc('games/last_war/invitations/inv1').get()
+    inviter.doc('games/last_war/alliances/a1/invitations/inv1').get()
   );
   await assertSucceeds(
-    invitee.doc('games/last_war/invitations/inv1').get()
+    invitee.doc('games/last_war/alliances/a1/invitations/inv1').get()
   );
   await assertFails(
-    outsider.doc('games/last_war/invitations/inv1').get()
+    outsider.doc('games/last_war/alliances/a1/invitations/inv1').get()
   );
 
   await assertSucceeds(
-    invitee.doc('games/last_war/invitations/inv1').update({
+    invitee.doc('games/last_war/alliances/a1/invitations/inv1').update({
       status: 'accepted',
       gameId: 'last_war',
     })
   );
 
   await assertFails(
-    outsider.doc('games/last_war/invitations/inv1').update({
+    outsider.doc('games/last_war/alliances/a1/invitations/inv1').update({
       status: 'revoked',
       gameId: 'last_war',
     })
   );
 
   await assertFails(
-    outsider.doc('games/last_war/invitations/inv2').set({
+    outsider.doc('games/last_war/alliances/a1/invitations/inv2').set({
       gameId: 'last_war',
       allianceId: 'a1',
       invitedBy: 'outsider',
