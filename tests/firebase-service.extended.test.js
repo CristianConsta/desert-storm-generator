@@ -2,6 +2,8 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const path = require('node:path');
 
+const { stubNormalizeGameId } = require('./helpers/normalize-stubs.js');
+
 const modulePath = path.resolve(__dirname, '../js/services/firebase-service.js');
 const coreGamesPath = path.resolve(__dirname, '../js/core/games.js');
 const coreEventsPath = path.resolve(__dirname, '../js/core/events.js');
@@ -22,14 +24,6 @@ function loadModule() {
   }
   delete require.cache[require.resolve(modulePath)];
   require(modulePath);
-}
-
-// Mirrors js/core/games.js's normalizeGameId — used only by test stubs below
-// that intentionally install a minimal/partial DSCoreGames replacement.
-function stubNormalizeGameId(value) {
-  return typeof value === 'string'
-    ? value.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '')
-    : '';
 }
 
 function makeLocalStorage(seed) {

@@ -2,6 +2,8 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const path = require('node:path');
 
+const { stubNormalizeGameId } = require('./helpers/normalize-stubs.js');
+
 const firebaseInfraPath = path.resolve(__dirname, '../firebase-infra.js');
 const firebaseAuthModulePath = path.resolve(__dirname, '../firebase-auth-module.js');
 const firebaseModulePath = path.resolve(__dirname, '../firebase-module.js');
@@ -13,13 +15,6 @@ const coreEventsPath = path.resolve(__dirname, '../js/core/events.js');
 // delegation resolves for real, unless a test has already installed its own
 // minimal DSCoreGames/DSCoreEvents stub (some tests below intentionally do,
 // to exercise a specific fallback catalog) — in which case leave it alone.
-// Mirrors js/core/games.js's normalizeGameId — used only by the one test
-// below that intentionally installs a minimal/partial DSCoreGames stub.
-function stubNormalizeGameId(value) {
-  return typeof value === 'string'
-    ? value.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '')
-    : '';
-}
 
 function requireCoreModules() {
   if (!global.DSCoreGames) {
@@ -321,9 +316,9 @@ test('firebase manager gracefully falls back when user read is permission-denied
 
   try {
     requireCoreModules();
-  require(firebaseInfraPath);
-  require(firebaseAuthModulePath);
-  require(firebaseModulePath);
+    require(firebaseInfraPath);
+    require(firebaseAuthModulePath);
+    require(firebaseModulePath);
     assert.equal(global.FirebaseManager.init(), true);
 
     const loadedPayloads = [];
