@@ -2138,7 +2138,7 @@ window.DSGameMetadataAdminController.init({
     getAvatarInitials: function (a, b) { return getAvatarInitials(a, b); },
     closeNavigationMenu: function () { return closeNavigationMenu(); },
     generateEventAvatarDataUrl: function (n, i) { return generateEventAvatarDataUrl(n, i); },
-    createGameMetadataLogoDataUrl: function (f) { return createGameMetadataLogoDataUrl(f); },
+    createGameMetadataLogoDataUrl: function (f) { return window.DSEventsRegistryController.createGameMetadataLogoDataUrl(f); },
     getSelectableGameById: function (id) { return getSelectableGameById(id); },
 });
 
@@ -2203,7 +2203,6 @@ function triggerEventLogoUpload() { return window.DSEventsRegistryController.tri
 function triggerEventMapUpload() { return window.DSEventsRegistryController.triggerEventMapUpload(); }
 function removeEventLogo() { return window.DSEventsRegistryController.removeEventLogo(); }
 function removeEventMap() { return window.DSEventsRegistryController.removeEventMap(); }
-function createGameMetadataLogoDataUrl(f) { return window.DSEventsRegistryController.createGameMetadataLogoDataUrl(f); }
 function handleEventLogoChange(e) { return window.DSEventsRegistryController.handleEventLogoChange(e); }
 function handleEventMapChange(e) { return window.DSEventsRegistryController.handleEventMapChange(e); }
 function saveEventDefinition() { return window.DSEventsRegistryController.saveEventDefinition(); }
