@@ -18,12 +18,21 @@ const GAME_ID = 'last_war';
 
 let testEnv;
 
+// Node's test runner does not guarantee multiple top-level test.before()
+// hooks run in registration order relative to each other's async work —
+// a second hook can start before the first one's awaited promise settles.
+// Both setup steps are combined into one hook to remove that race.
 test.before(async () => {
     testEnv = await initializeTestEnvironment({
         projectId: PROJECT_ID,
         firestore: {
             rules: fs.readFileSync(RULES_PATH, 'utf8'),
         },
+    });
+    // Seed a game doc to use in read/update/delete tests.
+    await seedDoc(`games/${GAME_ID}`, {
+        name: 'Last War',
+        createdBy: SUPER_ADMIN_UID,
     });
 });
 
@@ -48,17 +57,6 @@ function authedDb(uid) {
 function unauthDb() {
     return testEnv.unauthenticatedContext().firestore();
 }
-
-// ---------------------------------------------------------------------------
-// Setup: seed a game doc to use in read/update/delete tests.
-// ---------------------------------------------------------------------------
-
-test.before(async () => {
-    await seedDoc(`games/${GAME_ID}`, {
-        name: 'Last War',
-        createdBy: SUPER_ADMIN_UID,
-    });
-});
 
 // ---------------------------------------------------------------------------
 // games/{gameId} — read
