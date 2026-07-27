@@ -203,10 +203,22 @@ service cloud.firestore {
           && isGameScopedPayloadFor(gameId)
           && (
             isAllianceActor(resource.data)
-            // Invitees can self-join through accept-invitation flow.
             || (
-              request.resource.data.members is map
+              // Invitees can self-join through accept-invitation flow
+              // (firebase-module.js acceptInvitation(), which validates the
+              // invitation client-side before this write). This branch does
+              // NOT verify a genuine pending invitation exists — Firestore
+              // Rules cannot query for one without knowing its document ID —
+              // so it is intentionally narrow: it only permits changing the
+              // caller's own entry in the members map. It cannot touch any
+              // other field on the alliance document, and cannot add,
+              // remove, or modify any OTHER member's entry, so an unverified
+              // self-join can only ever add the caller, never evict or
+              // tamper with existing members.
+              request.resource.data.diff(resource.data).affectedKeys().hasOnly(['members'])
+              && request.resource.data.members is map
               && request.resource.data.members[request.auth.uid] != null
+              && resource.data.members.diff(request.resource.data.members).affectedKeys().hasOnly([request.auth.uid])
             )
           );
         allow delete: if isAllianceActor(resource.data);
