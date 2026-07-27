@@ -19,19 +19,23 @@ const HISTORY_ID = 'history_doc_1';
 
 let testEnv;
 
+// Node's test runner does not guarantee multiple top-level test.before()
+// hooks run in registration order relative to each other's async work —
+// a second hook can start before the first one's awaited promise settles.
+// Both setup steps are combined into one hook to remove that race.
 test.before(async () => {
-    try {
-        testEnv = await initializeTestEnvironment({
-            projectId: PROJECT_ID,
-            firestore: {
-                rules: fs.readFileSync(RULES_PATH, 'utf8'),
-            },
-        });
-        console.error('DIAGNOSTIC: initializeTestEnvironment succeeded, testEnv is', typeof testEnv);
-    } catch (err) {
-        console.error('DIAGNOSTIC: initializeTestEnvironment threw:', err && err.stack ? err.stack : err);
-        throw err;
-    }
+    testEnv = await initializeTestEnvironment({
+        projectId: PROJECT_ID,
+        firestore: {
+            rules: fs.readFileSync(RULES_PATH, 'utf8'),
+        },
+    });
+    // The isAllianceMember() rule function reads games/last_war/alliances/{id}.
+    await seedDoc(`games/last_war/alliances/${ALLIANCE_ID}`, {
+        gameId: 'last_war',
+        createdBy: MEMBER_UID,
+        members: { [MEMBER_UID]: true },
+    });
 });
 
 test.after(async () => {
@@ -61,20 +65,6 @@ function anonDb() {
 function unauthDb() {
     return testEnv.unauthenticatedContext().firestore();
 }
-
-// ---------------------------------------------------------------------------
-// Setup: seed the alliance doc with MEMBER_UID as a member.
-// The isAllianceMember() rule function reads games/last_war/alliances/{id}.
-// ---------------------------------------------------------------------------
-
-test.before(async () => {
-    console.error('DIAGNOSTIC: second test.before start, testEnv is', typeof testEnv, testEnv === undefined ? '(undefined)' : '(defined)');
-    await seedDoc(`games/last_war/alliances/${ALLIANCE_ID}`, {
-        gameId: 'last_war',
-        createdBy: MEMBER_UID,
-        members: { [MEMBER_UID]: true },
-    });
-});
 
 // ---------------------------------------------------------------------------
 // event_history — read
