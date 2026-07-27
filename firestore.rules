@@ -218,7 +218,7 @@ service cloud.firestore {
               request.resource.data.diff(resource.data).affectedKeys().hasOnly(['members'])
               && request.resource.data.members is map
               && request.resource.data.members[request.auth.uid] != null
-              && resource.data.members.diff(request.resource.data.members).affectedKeys().hasOnly([request.auth.uid])
+              && request.resource.data.members.diff(resource.data.members).affectedKeys().hasOnly([request.auth.uid])
             )
           );
         allow delete: if isAllianceActor(resource.data);
