@@ -78,56 +78,6 @@
         };
     }
 
-    // Render token generation modal with links.
-    // container: HTMLElement, tokens: Array<{ playerName, link }>
-    function renderTokenModal(container, tokens) {
-        if (!container) return;
-        container.innerHTML = '';
-
-        if (!tokens || tokens.length === 0) {
-            var empty = document.createElement('p');
-            empty.setAttribute('data-i18n', 'player_updates_no_tokens');
-            empty.textContent = 'No tokens generated.';
-            container.appendChild(empty);
-            return;
-        }
-
-        var list = document.createElement('ul');
-        list.className = 'token-link-list';
-
-        tokens.forEach(function(token) {
-            var item = document.createElement('li');
-            item.className = 'token-link-row';
-
-            var nameEl = document.createElement('span');
-            nameEl.className = 'token-player-name';
-            nameEl.textContent = token.playerName || '';
-
-            var linkEl = document.createElement('a');
-            linkEl.className = 'token-link-url';
-            linkEl.href = token.link || '#';
-            linkEl.textContent = token.link || '';
-            linkEl.setAttribute('target', '_blank');
-            linkEl.setAttribute('rel', 'noopener noreferrer');
-
-            var copyBtn = document.createElement('button');
-            copyBtn.className = 'secondary token-copy-btn';
-            copyBtn.setAttribute('data-link', token.link || '');
-            copyBtn.setAttribute('data-i18n', 'player_updates_copy_link');
-            var playerName = (token && token.playerName) || 'player';
-            copyBtn.setAttribute('title', 'Copy link for ' + playerName);
-            copyBtn.setAttribute('aria-label', 'Copy link for ' + playerName);
-            copyBtn.innerHTML = '<span class="action-btn-text">' + t('player_updates_copy_link') + '</span><span class="action-btn-icon" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="2" width="10" height="12" rx="1.5"/><path d="M6,1h4v2H6z"/><line x1="5.5" y1="7" x2="10.5" y2="7"/><line x1="5.5" y1="10" x2="10.5" y2="10"/></svg></span>';
-
-            item.appendChild(nameEl);
-            item.appendChild(linkEl);
-            item.appendChild(copyBtn);
-            list.appendChild(item);
-        });
-
-        container.appendChild(list);
-    }
-
     // Render pending updates review panel.
     // container: HTMLElement, updates: Array<pending_update docs with deltas>
     function renderReviewPanel(container, updates) {
@@ -616,7 +566,6 @@
     }
 
     global.DSFeaturePlayerUpdatesView = {
-        renderTokenModal: renderTokenModal,
         renderReviewPanel: renderReviewPanel,
         renderComparisonRow: renderComparisonRow,
         renderPendingBadge: renderPendingBadge,

@@ -28,8 +28,6 @@ function loadModules() {
     };
     global._domStubs = {};
 
-    // Crypto for generateToken
-    global.crypto = require('node:crypto').webcrypto;
     global.location = { origin: 'https://example.com' };
 
     // App state globals the controller reads
@@ -65,38 +63,6 @@ function makeMockGateway(overrides) {
         loadPendingUpdates: async function () { return []; },
     }, overrides || {});
 }
-
-// ---------------------------------------------------------------------------
-// openTokenGenerationModal (legacy path) is intentionally blocked
-// ---------------------------------------------------------------------------
-
-test('openTokenGenerationModal: blocks legacy path and does not call saveTokenBatch', async () => {
-    loadModules();
-
-    var batchCalled = false;
-    var alertMessage = '';
-    global.alert = function (msg) { alertMessage = String(msg || ''); };
-
-    var gateway = makeMockGateway({
-        saveTokenBatch: async function () { batchCalled = true; return { ok: true, tokenIds: [] }; },
-    });
-
-    global.DSFeaturePlayerUpdatesController.init(gateway);
-    const result = global.DSFeaturePlayerUpdatesController.openTokenGenerationModal(['Alice', 'Bob']);
-    await new Promise(function (resolve) { setTimeout(resolve, 20); });
-
-    assert.equal(result && result.ok, false);
-    assert.equal(result && result.error, 'invite_generation_restricted');
-    assert.equal(batchCalled, false, 'saveTokenBatch must not be called from legacy path');
-    assert.ok(alertMessage.includes('Players Management'), 'alert should route user to Players Management flow');
-});
-
-test('openTokenGenerationModal: remains blocked even if controller is not initialized', () => {
-    loadModules();
-    const result = global.DSFeaturePlayerUpdatesController.openTokenGenerationModal(['Alice']);
-    assert.equal(result && result.ok, false);
-    assert.equal(result && result.error, 'invite_generation_restricted');
-});
 
 // ---------------------------------------------------------------------------
 // approveUpdate -> updatePendingUpdateStatus with status='approved'
@@ -401,17 +367,4 @@ test('invite flow alliance: URL uses ?token=...&alliance=... (no uid param)', ()
     assert.ok(inviteUrl.includes('alliance=' + allianceId));
     assert.ok(inviteUrl.includes('gid=' + gameId), 'Alliance invite URL should include gid= param');
     assert.ok(inviteUrl.includes('pk=' + playerKey), 'Alliance invite URL should include pk= player key');
-});
-
-test('buildTokenDoc: includes playerName in token doc shape', () => {
-    // Regression for token scope enforcement in Firestore rules.
-    loadModules();
-    const doc = global.DSFeaturePlayerUpdatesCore.buildTokenDoc(
-        'Alice',
-        'alliance_pu_integ_1',
-        'last_war',
-        'uid_leader_pu',
-        { expiryHours: 48 }
-    );
-    assert.equal(doc.playerName, 'Alice', 'Token doc must preserve invited playerName');
 });

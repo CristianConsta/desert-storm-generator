@@ -89,6 +89,23 @@
         { "fieldPath": "gameId", "order": "ASCENDING" },
         { "fieldPath": "invitedBy", "order": "ASCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "event_history",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "active", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "event_history",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "active", "order": "ASCENDING" },
+        { "fieldPath": "eventTypeId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "ASCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []

@@ -26,12 +26,114 @@ let testEnv;
 // Lifecycle
 // ---------------------------------------------------------------------------
 
+// Node's test runner does not guarantee multiple top-level test.before()
+// hooks run in registration order relative to each other's async work —
+// a later hook can start before an earlier one's awaited promise settles.
+// All setup steps (env init + the three seed blocks below) are combined
+// into one hook to remove that race.
 test.before(async () => {
     testEnv = await initializeTestEnvironment({
         projectId: PROJECT_ID,
         firestore: {
             rules: fs.readFileSync(RULES_PATH, 'utf8'),
         },
+    });
+
+    // Seed the alliance doc with MEMBER_UID as a member.
+    await seedDoc(`games/last_war/alliances/${ALLIANCE_ID}`, {
+        gameId: 'last_war',
+        createdBy: MEMBER_UID,
+        members: { [MEMBER_UID]: true },
+    });
+
+    // Seed update_tokens docs used by the "read" test block below.
+    // submissionCount/maxSubmissions are included on every token doc because
+    // production always writes them (see firebase-module.js createUpdateToken());
+    // tokenHasRemainingSubmissions() throws (rather than defaulting) when a
+    // doc is missing them entirely, since Firestore rules map/field access
+    // errors on an absent key instead of returning null.
+    // Seed a valid (unexpired, unused) token
+    await seedDoc(`alliances/${ALLIANCE_ID}/update_tokens/token_valid`, {
+        token: 'valid_token_1234',
+        playerName: 'Alice',
+        playerKey: 'alice_key',
+        gameId: 'last_war',
+        used: false,
+        expiresAt: futureTimestamp(),
+        submissionCount: 0,
+        maxSubmissions: 3,
+    });
+
+    // Seed an expired token
+    await seedDoc(`alliances/${ALLIANCE_ID}/update_tokens/token_expired`, {
+        token: 'expired_token_1234',
+        playerName: 'Bob',
+        playerKey: 'bob_key',
+        gameId: 'last_war',
+        used: false,
+        expiresAt: pastTimestamp(),
+        submissionCount: 0,
+        maxSubmissions: 3,
+    });
+
+    // Seed an already-used token
+    await seedDoc(`alliances/${ALLIANCE_ID}/update_tokens/token_used`, {
+        token: 'used_token_1234',
+        playerName: 'Charlie',
+        playerKey: 'charlie_key',
+        gameId: 'last_war',
+        used: true,
+        expiresAt: futureTimestamp(),
+        submissionCount: 1,
+        maxSubmissions: 3,
+    });
+
+    // Seed a token for scope-violation tests (used=false, but wrong playerName/gameId attempts)
+    await seedDoc(`alliances/${ALLIANCE_ID}/update_tokens/token_scope_test`, {
+        token: 'scope_test_token',
+        playerName: 'Dave',
+        playerKey: 'dave_key',
+        gameId: 'last_war',
+        used: false,
+        expiresAt: futureTimestamp(),
+        submissionCount: 0,
+        maxSubmissions: 3,
+    });
+
+    // Seed a personal update token for PERSONAL_UID
+    await seedDoc(`users/${PERSONAL_UID}/update_tokens/${PERSONAL_TOKEN_ID}`, {
+        contextType: 'personal',
+        ownerUid: PERSONAL_UID,
+        playerName: 'Eve',
+        playerKey: 'eve_key',
+        gameId: 'last_war',
+        used: false,
+        expiresAt: futureTimestamp(),
+        submissionCount: 0,
+        maxSubmissions: 3,
+    });
+
+    // Seed a used personal token for negative test
+    await seedDoc(`users/${PERSONAL_UID}/update_tokens/personal_token_used`, {
+        contextType: 'personal',
+        ownerUid: PERSONAL_UID,
+        playerName: 'Eve',
+        playerKey: 'eve_key',
+        gameId: 'last_war',
+        used: true,
+        expiresAt: futureTimestamp(),
+        submissionCount: 1,
+        maxSubmissions: 3,
+    });
+
+    // Seed pending_updates doc used by the "read/update by alliance member" test block below.
+    await seedDoc(`alliances/${ALLIANCE_ID}/pending_updates/update_seeded`, {
+        tokenId: TOKEN_ID,
+        playerName: 'Alice',
+        playerKey: 'alice_key',
+        gameId: 'last_war',
+        status: 'pending',
+        proposedValues: { power: 3000, thp: 30000, troops: 'Tank' },
     });
 });
 
@@ -74,18 +176,6 @@ function pastTimestamp() {
 }
 
 // ---------------------------------------------------------------------------
-// Setup: seed the alliance doc with MEMBER_UID as a member.
-// ---------------------------------------------------------------------------
-
-test.before(async () => {
-    await seedDoc(`games/last_war/alliances/${ALLIANCE_ID}`, {
-        gameId: 'last_war',
-        createdBy: MEMBER_UID,
-        members: { [MEMBER_UID]: true },
-    });
-});
-
-// ---------------------------------------------------------------------------
 // update_tokens — create
 // ---------------------------------------------------------------------------
 
@@ -103,6 +193,8 @@ test('update_tokens: alliance member can create update_tokens', async () => {
             used: false,
             usedAt: null,
             usedByAnonUid: null,
+            submissionCount: 0,
+            maxSubmissions: 3,
         })
     );
 });
@@ -148,70 +240,6 @@ test('update_tokens: alliance member CANNOT create update_tokens without playerK
 // update_tokens — read (anonymous access for valid tokens)
 // ---------------------------------------------------------------------------
 
-test.before(async () => {
-    // Seed a valid (unexpired, unused) token
-    await seedDoc(`alliances/${ALLIANCE_ID}/update_tokens/token_valid`, {
-        token: 'valid_token_1234',
-        playerName: 'Alice',
-        playerKey: 'alice_key',
-        gameId: 'last_war',
-        used: false,
-        expiresAt: futureTimestamp(),
-    });
-
-    // Seed an expired token
-    await seedDoc(`alliances/${ALLIANCE_ID}/update_tokens/token_expired`, {
-        token: 'expired_token_1234',
-        playerName: 'Bob',
-        playerKey: 'bob_key',
-        gameId: 'last_war',
-        used: false,
-        expiresAt: pastTimestamp(),
-    });
-
-    // Seed an already-used token
-    await seedDoc(`alliances/${ALLIANCE_ID}/update_tokens/token_used`, {
-        token: 'used_token_1234',
-        playerName: 'Charlie',
-        playerKey: 'charlie_key',
-        gameId: 'last_war',
-        used: true,
-        expiresAt: futureTimestamp(),
-    });
-
-    // Seed a token for scope-violation tests (used=false, but wrong playerName/gameId attempts)
-    await seedDoc(`alliances/${ALLIANCE_ID}/update_tokens/token_scope_test`, {
-        token: 'scope_test_token',
-        playerName: 'Dave',
-        playerKey: 'dave_key',
-        gameId: 'last_war',
-        used: false,
-        expiresAt: futureTimestamp(),
-    });
-
-    // Seed a personal update token for PERSONAL_UID
-    await seedDoc(`users/${PERSONAL_UID}/update_tokens/${PERSONAL_TOKEN_ID}`, {
-        contextType: 'personal',
-        ownerUid: PERSONAL_UID,
-        playerName: 'Eve',
-        playerKey: 'eve_key',
-        gameId: 'last_war',
-        used: false,
-        expiresAt: futureTimestamp(),
-    });
-
-    // Seed a used personal token for negative test
-    await seedDoc(`users/${PERSONAL_UID}/update_tokens/personal_token_used`, {
-        contextType: 'personal',
-        ownerUid: PERSONAL_UID,
-        playerName: 'Eve',
-        playerKey: 'eve_key',
-        gameId: 'last_war',
-        used: true,
-        expiresAt: futureTimestamp(),
-    });
-});
-
 test('update_tokens: anonymous user can read unexpired, unused token', async () => {
     const db = anonDb();
     await assertSucceeds(
@@ -252,7 +280,11 @@ test('update_tokens: alliance member can read any token', async () => {
 // ---------------------------------------------------------------------------
 
 test('update_tokens: anonymous user can update token to mark as used (only used, usedAt, usedByAnonUid)', async () => {
-    // Seed a fresh valid token to update
+    // Seed a fresh valid token with maxSubmissions: 1, so this single
+    // submission both increments submissionCount and reaches the limit —
+    // matching how js/player-update/player-update.js writes tokenUpdate
+    // (submissionCount/lastSubmittedAt/lastSubmittedByAnonUid always; used/usedAt
+    // only once the limit is reached).
     await seedDoc(`alliances/${ALLIANCE_ID}/update_tokens/token_to_use`, {
         token: 'token_to_use_value',
         playerName: 'Diana',
@@ -261,14 +293,19 @@ test('update_tokens: anonymous user can update token to mark as used (only used,
         expiresAt: futureTimestamp(),
         usedAt: null,
         usedByAnonUid: null,
+        submissionCount: 0,
+        maxSubmissions: 1,
     });
 
     const db = anonDb('anon_uid_uses_token');
     await assertSucceeds(
         db.doc(`alliances/${ALLIANCE_ID}/update_tokens/token_to_use`).update({
+            submissionCount: 1,
+            lastSubmittedAt: new Date(),
+            lastSubmittedByAnonUid: 'anon_uid_uses_token',
+            usedByAnonUid: 'anon_uid_uses_token',
             used: true,
             usedAt: new Date(),
-            usedByAnonUid: 'anon_uid_uses_token',
         })
     );
 });
@@ -283,11 +320,14 @@ test('update_tokens: anonymous user CANNOT update token playerName field', async
         expiresAt: futureTimestamp(),
         usedAt: null,
         usedByAnonUid: null,
+        submissionCount: 0,
+        maxSubmissions: 3,
     });
 
     const db = anonDb('anon_uid_tampers');
     await assertFails(
         db.doc(`alliances/${ALLIANCE_ID}/update_tokens/token_tamper`).update({
+            submissionCount: 1,
             used: true,
             usedAt: new Date(),
             usedByAnonUid: 'anon_uid_tampers',
@@ -659,17 +699,6 @@ test('pending_updates (personal): anonymous user CANNOT create with wrong ownerU
 // ---------------------------------------------------------------------------
 // pending_updates — read and update (alliance member)
 // ---------------------------------------------------------------------------
-
-test.before(async () => {
-    await seedDoc(`alliances/${ALLIANCE_ID}/pending_updates/update_seeded`, {
-        tokenId: TOKEN_ID,
-        playerName: 'Alice',
-        playerKey: 'alice_key',
-        gameId: 'last_war',
-        status: 'pending',
-        proposedValues: { power: 3000, thp: 30000, troops: 'Tank' },
-    });
-});
 
 test('pending_updates: alliance member can read pending_updates', async () => {
     const db = authedDb(MEMBER_UID);

@@ -2,11 +2,26 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const path = require('node:path');
 
+const { stubNormalizeGameId } = require('./helpers/normalize-stubs.js');
+
 const modulePath = path.resolve(__dirname, '../js/services/firebase-service.js');
+const coreGamesPath = path.resolve(__dirname, '../js/core/games.js');
+const coreEventsPath = path.resolve(__dirname, '../js/core/events.js');
 
 function loadModule() {
   global.window = global;
   delete global.FirebaseService;
+  // Only load the real core modules when a test hasn't already installed its
+  // own DSCoreGames/DSCoreEvents stub (several tests below intentionally
+  // provide a minimal fallback-catalog stub and must not have it clobbered).
+  if (!global.DSCoreGames) {
+    delete require.cache[require.resolve(coreGamesPath)];
+    require(coreGamesPath);
+  }
+  if (!global.DSCoreEvents) {
+    delete require.cache[require.resolve(coreEventsPath)];
+    require(coreEventsPath);
+  }
   delete require.cache[require.resolve(modulePath)];
   require(modulePath);
 }
@@ -25,6 +40,7 @@ test.afterEach(() => {
   delete global.FirebaseManager;
   delete global.FirebaseService;
   delete global.DSCoreGames;
+  delete global.DSCoreEvents;
   delete global.localStorage;
   delete require.cache[require.resolve(modulePath)];
 });
@@ -181,6 +197,7 @@ test('ensureActiveGame uses default game id from catalog', () => {
   global.DSCoreGames = {
     getDefaultGameId: () => 'last_war',
     listAvailableGames: () => ([{ id: 'last_war', name: 'Last War: Survival' }]),
+    normalizeGameId: stubNormalizeGameId,
   };
   loadModule();
   assert.deepEqual(global.FirebaseService.ensureActiveGame(), { gameId: 'last_war', source: 'default' });
@@ -191,6 +208,7 @@ test('setActiveGame rejects unknown game id when catalog is available', () => {
   delete global.FirebaseManager;
   global.DSCoreGames = {
     listAvailableGames: () => ([{ id: 'last_war', name: 'Last War: Survival' }]),
+    normalizeGameId: stubNormalizeGameId,
   };
   loadModule();
   assert.deepEqual(global.FirebaseService.setActiveGame('unknown_game'), {
@@ -203,6 +221,7 @@ test('setActiveGame rejects unknown game id when catalog is available', () => {
 test('setActiveGame accepts ids exposed by manager game catalog', () => {
   global.DSCoreGames = {
     listAvailableGames: () => ([{ id: 'last_war', name: 'Last War: Survival' }]),
+    normalizeGameId: stubNormalizeGameId,
   };
   global.FirebaseManager = {
     listAvailableGames: () => ([

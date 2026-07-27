@@ -26,8 +26,15 @@ service cloud.firestore {
     }
 
     function isAllianceMemberPayload(data, uid) {
+      // Map-index access ("data.members[uid]") throws instead of returning
+      // null when uid is absent from the map — the "uid in data.members"
+      // check must short-circuit first so non-members (including anonymous
+      // callers) get a clean `false` rather than an evaluation error, which
+      // would otherwise reject the whole `isAllianceMember(...) || (...)`
+      // expression regardless of what the other branch evaluates to.
       return data != null
         && data.members is map
+        && (uid in data.members)
         && data.members[uid] != null;
     }
 
@@ -203,10 +210,22 @@ service cloud.firestore {
           && isGameScopedPayloadFor(gameId)
           && (
             isAllianceActor(resource.data)
-            // Invitees can self-join through accept-invitation flow.
             || (
-              request.resource.data.members is map
+              // Invitees can self-join through accept-invitation flow
+              // (firebase-module.js acceptInvitation(), which validates the
+              // invitation client-side before this write). This branch does
+              // NOT verify a genuine pending invitation exists — Firestore
+              // Rules cannot query for one without knowing its document ID —
+              // so it is intentionally narrow: it only permits changing the
+              // caller's own entry in the members map. It cannot touch any
+              // other field on the alliance document, and cannot add,
+              // remove, or modify any OTHER member's entry, so an unverified
+              // self-join can only ever add the caller, never evict or
+              // tamper with existing members.
+              request.resource.data.diff(resource.data).affectedKeys().hasOnly(['members'])
+              && request.resource.data.members is map
               && request.resource.data.members[request.auth.uid] != null
+              && request.resource.data.members.diff(resource.data.members).affectedKeys().hasOnly([request.auth.uid])
             )
           );
         allow delete: if isAllianceActor(resource.data);
@@ -485,10 +504,11 @@ service cloud.firestore {
         }
       }
 
-      // Shared event definitions (game-level, all signed-in users can read/write)
+      // Shared event definitions (game-level, all signed-in users can read;
+      // only members of an alliance within this game can write)
       match /events/{eventId} {
         allow read: if signedIn();
-        allow write: if signedIn(); // TODO: tighten to alliance membership check in Phase 2.x
+        allow write: if isGameAllianceMember(gameId);
       }
 
       // Event history (game-level)
@@ -528,6 +548,27 @@ service cloud.firestore {
         && exists(/databases/$(database)/documents/games/last_war/alliances/$(allianceId))
         && isAllianceMemberPayload(
           get(/databases/$(database)/documents/games/last_war/alliances/$(allianceId)).data,
+          request.auth.uid
+        );
+    }
+
+    // Helper: check if the current user is a genuine member of the alliance
+    // referenced by their per-game user_state doc, within the given game.
+    // user_state.allianceId alone is NOT trusted (that document is
+    // self-writable — see `match /user_state/{uid}` above) — this function
+    // additionally verifies the authoritative alliance document actually
+    // lists the user in its members map, the same trust model as
+    // isAllianceMember() above (but parameterized by gameId instead of
+    // hardcoded to 'last_war').
+    // NOTE: This performs get() calls which count toward Firestore
+    // security-rule read limits.
+    function isGameAllianceMember(gameId) {
+      return signedIn()
+        && exists(/databases/$(database)/documents/games/$(gameId)/user_state/$(request.auth.uid))
+        && get(/databases/$(database)/documents/games/$(gameId)/user_state/$(request.auth.uid)).data.allianceId != null
+        && exists(/databases/$(database)/documents/games/$(gameId)/alliances/$(get(/databases/$(database)/documents/games/$(gameId)/user_state/$(request.auth.uid)).data.allianceId))
+        && isAllianceMemberPayload(
+          get(/databases/$(database)/documents/games/$(gameId)/alliances/$(get(/databases/$(database)/documents/games/$(gameId)/user_state/$(request.auth.uid)).data.allianceId)).data,
           request.auth.uid
         );
     }

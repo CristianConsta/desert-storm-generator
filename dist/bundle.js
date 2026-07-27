@@ -80,16 +80,10 @@
           return fallbackValue;
         }
         function normalizeEventId(value) {
-          if (typeof value !== "string") {
-            return "";
-          }
-          return value.trim().toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+          return global2.DSCoreEvents && typeof global2.DSCoreEvents.normalizeEventId === "function" ? global2.DSCoreEvents.normalizeEventId(value) : "";
         }
         function normalizeGameId(value) {
-          if (typeof value !== "string") {
-            return "";
-          }
-          return value.trim().toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+          return global2.DSCoreGames && typeof global2.DSCoreGames.normalizeGameId === "function" ? global2.DSCoreGames.normalizeGameId(value) : "";
         }
         function normalizeGameContextInput(context) {
           if (typeof context === "string") {
@@ -11016,7 +11010,8 @@
           listAvailableGames,
           isKnownGame,
           isGameMetadataSuperAdmin,
-          canEditGameMetadata
+          canEditGameMetadata,
+          normalizeGameId
         };
       })(window);
     }
@@ -11277,7 +11272,8 @@
           slugifyEventId,
           cloneEventBuildings,
           cloneDefaultPositions,
-          cloneLegacyEventRegistry
+          cloneLegacyEventRegistry,
+          normalizeEventId
         };
       })(window);
     }
@@ -15246,16 +15242,10 @@
           return value.trim().toLowerCase();
         }
         function normalizeGameId(value) {
-          if (typeof value !== "string") {
-            return "";
-          }
-          return value.trim().toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+          return global2.DSCoreGames && typeof global2.DSCoreGames.normalizeGameId === "function" ? global2.DSCoreGames.normalizeGameId(value) : "";
         }
         function normalizeEventId(value) {
-          if (typeof value !== "string") {
-            return "";
-          }
-          return value.trim().toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+          return global2.DSCoreEvents && typeof global2.DSCoreEvents.normalizeEventId === "function" ? global2.DSCoreEvents.normalizeEventId(value) : "";
         }
         function normalizeMapPurpose(purpose) {
           return purpose === MAP_EXPORT ? MAP_EXPORT : MAP_PREVIEW;
@@ -17327,51 +17317,6 @@
     "js/features/player-updates/player-updates-core.js"() {
       (function initFeaturePlayerUpdatesCore(global2) {
         var VALID_TROOPS = ["Tank", "Aero", "Missile"];
-        var DEFAULT_EXPIRY_HOURS = 48;
-        var TOKEN_HEX_LENGTH = 32;
-        function generateToken() {
-          var bytes = new Uint8Array(TOKEN_HEX_LENGTH / 2);
-          crypto.getRandomValues(bytes);
-          return Array.from(bytes).map(function(b) {
-            return b.toString(16).padStart(2, "0");
-          }).join("");
-        }
-        function buildTokenDoc(playerName, allianceId, gameId, createdByUid, options) {
-          var opts = options || {};
-          var expiryHours = typeof opts.expiryHours === "number" ? opts.expiryHours : DEFAULT_EXPIRY_HOURS;
-          var now = /* @__PURE__ */ new Date();
-          var expiresAt = new Date(now.getTime() + expiryHours * 60 * 60 * 1e3);
-          return {
-            token: generateToken(),
-            playerName: playerName || null,
-            allianceId: allianceId || null,
-            gameId: gameId || null,
-            createdByUid: createdByUid || null,
-            createdAt: now,
-            expiresAt,
-            used: false,
-            usedAt: null,
-            usedByAnonUid: null,
-            linkedEventId: opts.linkedEventId || null,
-            currentSnapshot: opts.currentSnapshot || {}
-          };
-        }
-        function buildUpdateLink(token, allianceId, lang, gameId) {
-          var origin = global2.location && global2.location.origin ? global2.location.origin : "";
-          var link = origin + "/player-update.html?token=" + encodeURIComponent(token) + "&alliance=" + encodeURIComponent(allianceId) + "&lang=" + encodeURIComponent(lang);
-          if (gameId) {
-            link += "&gid=" + encodeURIComponent(gameId);
-          }
-          return link;
-        }
-        function formatLinksForMessaging(players) {
-          if (!Array.isArray(players)) {
-            return "";
-          }
-          return players.map(function(p) {
-            return (p.playerName || "") + ": " + (p.link || "");
-          }).join("\n");
-        }
         function validateProposedValues(proposed) {
           var errors = [];
           if (!proposed || typeof proposed !== "object") {
@@ -17469,10 +17414,6 @@
           };
         }
         global2.DSFeaturePlayerUpdatesCore = {
-          generateToken,
-          buildTokenDoc,
-          buildUpdateLink,
-          formatLinksForMessaging,
           validateProposedValues,
           normalizeProposedValues,
           proposedValuesEqual,
@@ -17612,45 +17553,6 @@
             thp: values.thp,
             troops: values.troops
           };
-        }
-        function renderTokenModal(container, tokens) {
-          if (!container) return;
-          container.innerHTML = "";
-          if (!tokens || tokens.length === 0) {
-            var empty = document.createElement("p");
-            empty.setAttribute("data-i18n", "player_updates_no_tokens");
-            empty.textContent = "No tokens generated.";
-            container.appendChild(empty);
-            return;
-          }
-          var list = document.createElement("ul");
-          list.className = "token-link-list";
-          tokens.forEach(function(token) {
-            var item = document.createElement("li");
-            item.className = "token-link-row";
-            var nameEl = document.createElement("span");
-            nameEl.className = "token-player-name";
-            nameEl.textContent = token.playerName || "";
-            var linkEl = document.createElement("a");
-            linkEl.className = "token-link-url";
-            linkEl.href = token.link || "#";
-            linkEl.textContent = token.link || "";
-            linkEl.setAttribute("target", "_blank");
-            linkEl.setAttribute("rel", "noopener noreferrer");
-            var copyBtn = document.createElement("button");
-            copyBtn.className = "secondary token-copy-btn";
-            copyBtn.setAttribute("data-link", token.link || "");
-            copyBtn.setAttribute("data-i18n", "player_updates_copy_link");
-            var playerName = token && token.playerName || "player";
-            copyBtn.setAttribute("title", "Copy link for " + playerName);
-            copyBtn.setAttribute("aria-label", "Copy link for " + playerName);
-            copyBtn.innerHTML = '<span class="action-btn-text">' + t("player_updates_copy_link") + '</span><span class="action-btn-icon" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="2" width="10" height="12" rx="1.5"/><path d="M6,1h4v2H6z"/><line x1="5.5" y1="7" x2="10.5" y2="7"/><line x1="5.5" y1="10" x2="10.5" y2="10"/></svg></span>';
-            item.appendChild(nameEl);
-            item.appendChild(linkEl);
-            item.appendChild(copyBtn);
-            list.appendChild(item);
-          });
-          container.appendChild(list);
         }
         function renderReviewPanel(container, updates) {
           if (!container) return;
@@ -18065,7 +17967,6 @@
           return dot;
         }
         global2.DSFeaturePlayerUpdatesView = {
-          renderTokenModal,
           renderReviewPanel,
           renderComparisonRow,
           renderPendingBadge,
@@ -18136,16 +18037,6 @@
               renderBadge(document.getElementById("moreSheetUpdatesBadge"), count);
             }
           });
-        }
-        function openTokenGenerationModal() {
-          var message = global2.DSI18N && global2.DSI18N.t ? global2.DSI18N.t("player_updates_invite_from_players_page_only") : "Player update invites can only be generated from Players Management.";
-          if (global2.console && typeof global2.console.warn === "function") {
-            global2.console.warn("[PlayerUpdatesController] Blocked legacy invite generation path. Use Players Management invite button.");
-          }
-          if (typeof global2.alert === "function") {
-            global2.alert(message);
-          }
-          return { ok: false, error: "invite_generation_restricted" };
         }
         function _showApplyTargetPrompt() {
           return new Promise(function(resolve) {
@@ -18566,7 +18457,6 @@
         global2.DSFeaturePlayerUpdatesController = {
           init,
           subscribeBadge,
-          openTokenGenerationModal,
           saveReviewedProposedValues,
           approveUpdate,
           rejectUpdate,
@@ -20801,10 +20691,7 @@
           return global2.DSCoreGames.listAvailableGames();
         }
         function normalizeGameId(value) {
-          if (typeof value !== "string") {
-            return "";
-          }
-          return value.trim().toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+          return global2.DSCoreGames && typeof global2.DSCoreGames.normalizeGameId === "function" ? global2.DSCoreGames.normalizeGameId(value) : "";
         }
         function normalizeUid(value) {
           if (typeof value !== "string") {
@@ -21033,10 +20920,7 @@
           return { gameId: resolveDefaultGameId(), explicit: false };
         }
         function normalizeEventId(value) {
-          if (typeof value !== "string") {
-            return "";
-          }
-          return value.trim();
+          return global2.DSCoreEvents && typeof global2.DSCoreEvents.normalizeEventId === "function" ? global2.DSCoreEvents.normalizeEventId(value) : "";
         }
         function resolveEventScopedContext(methodName, eventIdOrContext, contextMaybe) {
           const explicitEventId = normalizeEventId(eventIdOrContext);
@@ -25560,7 +25444,7 @@
           return generateEventAvatarDataUrl(n, i);
         },
         createGameMetadataLogoDataUrl: function(f) {
-          return createGameMetadataLogoDataUrl(f);
+          return window.DSEventsRegistryController.createGameMetadataLogoDataUrl(f);
         },
         getSelectableGameById: function(id) {
           return getSelectableGameById(id);
@@ -25735,9 +25619,6 @@
       }
       function removeEventMap() {
         return window.DSEventsRegistryController.removeEventMap();
-      }
-      function createGameMetadataLogoDataUrl(f) {
-        return window.DSEventsRegistryController.createGameMetadataLogoDataUrl(f);
       }
       function handleEventLogoChange(e) {
         return window.DSEventsRegistryController.handleEventLogoChange(e);

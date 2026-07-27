@@ -102,46 +102,6 @@ test('race condition: first approveUpdate succeeds, second fails with PERMISSION
 });
 
 // ---------------------------------------------------------------------------
-// Legacy invite generation path is blocked even under concurrent calls
-// ---------------------------------------------------------------------------
-
-test('race condition: two concurrent openTokenGenerationModal calls stay blocked and skip gateway writes', async () => {
-    loadModules();
-
-    var callCount = 0;
-    var warnings = [];
-    var alertCount = 0;
-    global.alert = function () { alertCount++; };
-    global.console = Object.assign({}, console, {
-        warn: function () { warnings.push([].slice.call(arguments).join(' ')); },
-    });
-
-    var gateway = {
-        saveTokenBatch: async function () {
-            callCount++;
-            return { ok: true, tokenIds: ['tok_1'] };
-        },
-        updatePendingUpdateStatus: async function () { return { ok: true }; },
-        revokeToken: async function () { return { ok: true }; },
-    };
-
-    global.DSFeaturePlayerUpdatesController.init(gateway);
-
-    // Fire both concurrently
-    const result1 = global.DSFeaturePlayerUpdatesController.openTokenGenerationModal(['Alice']);
-    const result2 = global.DSFeaturePlayerUpdatesController.openTokenGenerationModal(['Alice']);
-
-    // Allow microtasks to settle
-    await new Promise(function (resolve) { setTimeout(resolve, 20); });
-
-    assert.equal(result1 && result1.error, 'invite_generation_restricted');
-    assert.equal(result2 && result2.error, 'invite_generation_restricted');
-    assert.equal(callCount, 0, 'Legacy path must never call saveTokenBatch');
-    assert.ok(warnings.length >= 1, 'Controller should log warning for blocked legacy path');
-    assert.equal(alertCount, 2, 'User guidance alert should be shown on blocked calls');
-});
-
-// ---------------------------------------------------------------------------
 // Race condition: rejectUpdate after approveUpdate (concurrent review conflict)
 // ---------------------------------------------------------------------------
 
@@ -223,7 +183,6 @@ test('phase1b regression: DSFeaturePlayerUpdatesController exposes all required 
     const ctrl = global.DSFeaturePlayerUpdatesController;
     assert.ok(ctrl, 'DSFeaturePlayerUpdatesController should be defined');
     assert.equal(typeof ctrl.init, 'function');
-    assert.equal(typeof ctrl.openTokenGenerationModal, 'function');
     assert.equal(typeof ctrl.approveUpdate, 'function');
     assert.equal(typeof ctrl.rejectUpdate, 'function');
     assert.equal(typeof ctrl.revokeToken, 'function');
@@ -234,10 +193,6 @@ test('phase1b regression: DSFeaturePlayerUpdatesCore exposes all required method
     loadModules();
     const core = global.DSFeaturePlayerUpdatesCore;
     assert.ok(core, 'DSFeaturePlayerUpdatesCore should be defined');
-    assert.equal(typeof core.generateToken, 'function');
-    assert.equal(typeof core.buildTokenDoc, 'function');
-    assert.equal(typeof core.buildUpdateLink, 'function');
-    assert.equal(typeof core.formatLinksForMessaging, 'function');
     assert.equal(typeof core.validateProposedValues, 'function');
     assert.equal(typeof core.calculateDeltas, 'function');
 });

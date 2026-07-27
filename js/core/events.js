@@ -276,5 +276,6 @@
         cloneEventBuildings: cloneEventBuildings,
         cloneDefaultPositions: cloneDefaultPositions,
         cloneLegacyEventRegistry: cloneLegacyEventRegistry,
+        normalizeEventId: normalizeEventId,
     };
 })(window);

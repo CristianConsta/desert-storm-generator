@@ -9,7 +9,7 @@ const { initializeTestEnvironment, assertSucceeds, assertFails } = require('@fir
 const fs = require('node:fs');
 const path = require('node:path');
 
-const PROJECT_ID = 'demo-desert-storm-generator';
+const PROJECT_ID = 'demo-desert-storm-generator-event-history';
 const RULES_PATH = path.resolve(__dirname, '../../firestore.rules');
 
 const ALLIANCE_ID = 'alliance_test_1';
@@ -19,12 +19,22 @@ const HISTORY_ID = 'history_doc_1';
 
 let testEnv;
 
+// Node's test runner does not guarantee multiple top-level test.before()
+// hooks run in registration order relative to each other's async work —
+// a second hook can start before the first one's awaited promise settles.
+// Both setup steps are combined into one hook to remove that race.
 test.before(async () => {
     testEnv = await initializeTestEnvironment({
         projectId: PROJECT_ID,
         firestore: {
             rules: fs.readFileSync(RULES_PATH, 'utf8'),
         },
+    });
+    // The isAllianceMember() rule function reads games/last_war/alliances/{id}.
+    await seedDoc(`games/last_war/alliances/${ALLIANCE_ID}`, {
+        gameId: 'last_war',
+        createdBy: MEMBER_UID,
+        members: { [MEMBER_UID]: true },
     });
 });
 
@@ -57,26 +67,13 @@ function unauthDb() {
 }
 
 // ---------------------------------------------------------------------------
-// Setup: seed the alliance doc with MEMBER_UID as a member.
-// The isAllianceMember() rule function reads games/last_war/alliances/{id}.
-// ---------------------------------------------------------------------------
-
-test.before(async () => {
-    await seedDoc(`games/last_war/alliances/${ALLIANCE_ID}`, {
-        gameId: 'last_war',
-        createdBy: MEMBER_UID,
-        members: { [MEMBER_UID]: true },
-    });
-});
-
-// ---------------------------------------------------------------------------
 // event_history — read
 // ---------------------------------------------------------------------------
 
 test('event_history: alliance member can read event_history doc', async () => {
     await seedDoc(`alliances/${ALLIANCE_ID}/event_history/${HISTORY_ID}`, {
         eventName: 'Desert Storm #1',
-        createdBy: MEMBER_UID,
+        createdByUid: MEMBER_UID,
         finalized: false,
     });
 
@@ -104,23 +101,23 @@ test('event_history: unauthenticated user CANNOT read event_history', async () =
 // event_history — create
 // ---------------------------------------------------------------------------
 
-test('event_history: alliance member can create event_history with matching createdBy', async () => {
+test('event_history: alliance member can create event_history with matching createdByUid', async () => {
     const db = authedDb(MEMBER_UID);
     await assertSucceeds(
         db.collection(`alliances/${ALLIANCE_ID}/event_history`).doc('new_history_1').set({
             eventName: 'Canyon Storm #1',
-            createdBy: MEMBER_UID,
+            createdByUid: MEMBER_UID,
             finalized: false,
         })
     );
 });
 
-test('event_history: alliance member CANNOT create with mismatched createdBy', async () => {
+test('event_history: alliance member CANNOT create with mismatched createdByUid', async () => {
     const db = authedDb(MEMBER_UID);
     await assertFails(
         db.collection(`alliances/${ALLIANCE_ID}/event_history`).doc('bad_history_1').set({
             eventName: 'Canyon Storm #1',
-            createdBy: OUTSIDER_UID,  // wrong uid
+            createdByUid: OUTSIDER_UID,  // wrong uid
             finalized: false,
         })
     );
@@ -131,7 +128,7 @@ test('event_history: non-member CANNOT create event_history', async () => {
     await assertFails(
         db.collection(`alliances/${ALLIANCE_ID}/event_history`).doc('bad_history_2').set({
             eventName: 'Desert Storm #2',
-            createdBy: OUTSIDER_UID,
+            createdByUid: OUTSIDER_UID,
             finalized: false,
         })
     );
