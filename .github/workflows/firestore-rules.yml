@@ -1,4 +1,4 @@
-name: Deploy Firestore Rules
+name: Firestore Rules
 
 on:
   push:
@@ -6,6 +6,15 @@ on:
     paths:
       - "firestore.rules"
       - "firebase.json"
+      - "tests/firestore.rules.emulator.js"
+      - "tests/firestore-rules/**"
+      - ".github/workflows/firestore-rules.yml"
+  pull_request:
+    paths:
+      - "firestore.rules"
+      - "firebase.json"
+      - "tests/firestore.rules.emulator.js"
+      - "tests/firestore-rules/**"
       - ".github/workflows/firestore-rules.yml"
   workflow_dispatch:
 
@@ -13,12 +22,41 @@ permissions:
   contents: read
 
 concurrency:
-  group: "firestore-rules"
-  cancel-in-progress: false
+  group: "firestore-rules-${{ github.ref }}"
+  cancel-in-progress: true
 
 jobs:
-  deploy:
+  test-rules:
     runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Setup Java (required by the Firestore emulator)
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Firestore rules tests
+        run: npm run test:rules
+
+  deploy:
+    needs: test-rules
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: "firestore-rules-deploy"
+      cancel-in-progress: false
     steps:
       - name: Checkout
         uses: actions/checkout@v4
