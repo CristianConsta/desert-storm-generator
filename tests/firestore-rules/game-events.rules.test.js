@@ -18,12 +18,28 @@ const EVENT_ID = 'desert_storm';
 
 let testEnv;
 
+// Node's test runner does not guarantee multiple top-level test.before()
+// hooks run in registration order relative to each other's async work —
+// a second hook can start before the first one's awaited promise settles.
+// Both setup steps are combined into one hook to remove that race.
 test.before(async () => {
     testEnv = await initializeTestEnvironment({
         projectId: PROJECT_ID,
         firestore: {
             rules: fs.readFileSync(RULES_PATH, 'utf8'),
         },
+    });
+    await seedDoc(`games/${GAME_ID}/user_state/${ALLIANCE_MEMBER_UID}`, {
+        allianceId: 'alliance_1',
+        playerSource: 'alliance',
+    });
+    await seedDoc(`games/${GAME_ID}/alliances/alliance_1`, {
+        name: 'Test Alliance',
+        members: { [ALLIANCE_MEMBER_UID]: true },
+    });
+    await seedDoc(`games/${GAME_ID}/events/${EVENT_ID}`, {
+        name: 'Desert Storm',
+        buildingConfig: [],
     });
 });
 
@@ -40,21 +56,6 @@ async function seedDoc(docPath, data) {
 function authedDb(uid) {
     return testEnv.authenticatedContext(uid).firestore();
 }
-
-test.before(async () => {
-    await seedDoc(`games/${GAME_ID}/user_state/${ALLIANCE_MEMBER_UID}`, {
-        allianceId: 'alliance_1',
-        playerSource: 'alliance',
-    });
-    await seedDoc(`games/${GAME_ID}/alliances/alliance_1`, {
-        name: 'Test Alliance',
-        members: { [ALLIANCE_MEMBER_UID]: true },
-    });
-    await seedDoc(`games/${GAME_ID}/events/${EVENT_ID}`, {
-        name: 'Desert Storm',
-        buildingConfig: [],
-    });
-});
 
 test('game events: alliance member CAN write to shared event definitions', async () => {
     const db = authedDb(ALLIANCE_MEMBER_UID);
