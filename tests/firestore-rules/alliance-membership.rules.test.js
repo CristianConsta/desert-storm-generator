@@ -10,7 +10,7 @@ const { initializeTestEnvironment, assertSucceeds, assertFails } = require('@fir
 const fs = require('node:fs');
 const path = require('node:path');
 
-const PROJECT_ID = 'demo-desert-storm-generator';
+const PROJECT_ID = 'demo-desert-storm-generator-alliance-membership';
 const RULES_PATH = path.resolve(__dirname, '../../firestore.rules');
 
 const GAME_ID = 'last_war';

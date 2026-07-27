@@ -9,7 +9,7 @@ const { initializeTestEnvironment, assertSucceeds, assertFails } = require('@fir
 const fs = require('node:fs');
 const path = require('node:path');
 
-const PROJECT_ID = 'demo-desert-storm-generator';
+const PROJECT_ID = 'demo-desert-storm-generator-games';
 const RULES_PATH = path.resolve(__dirname, '../../firestore.rules');
 
 const SUPER_ADMIN_UID = '2z2BdO8aVsUovqQWWL9WCRMdV933';

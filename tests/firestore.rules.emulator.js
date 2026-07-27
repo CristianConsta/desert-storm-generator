@@ -8,7 +8,7 @@ const {
   assertSucceeds,
 } = require('@firebase/rules-unit-testing');
 
-const PROJECT_ID = 'demo-desert-storm-generator';
+const PROJECT_ID = 'demo-desert-storm-generator-legacy';
 const RULES_PATH = path.resolve(__dirname, '../firestore.rules');
 
 let testEnv;
