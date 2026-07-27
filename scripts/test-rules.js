@@ -23,9 +23,11 @@ const INTER_FILE_DELAY_MS = 3000;
 
 const rulesDir = path.resolve(__dirname, '../tests/firestore-rules');
 const files = [
+    // TEMP DIAGNOSTIC: event-history moved first to isolate position-vs-content.
+    path.resolve(rulesDir, 'event-history.rules.test.js'),
     path.resolve(__dirname, '../tests/firestore.rules.emulator.js'),
     ...fs.readdirSync(rulesDir)
-        .filter((name) => name.endsWith('.rules.test.js'))
+        .filter((name) => name.endsWith('.rules.test.js') && name !== 'event-history.rules.test.js')
         .sort()
         .map((name) => path.join(rulesDir, name)),
 ];
