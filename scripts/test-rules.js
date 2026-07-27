@@ -15,6 +15,12 @@ const { execFileSync } = require('node:child_process');
 const path = require('node:path');
 const fs = require('node:fs');
 
+// Gap between consecutive emulator invocations, letting the previous
+// Firestore emulator process fully release its port before the next one
+// binds it — observed intermittent "testEnv undefined" failures in CI when
+// invocations ran back-to-back with no gap.
+const INTER_FILE_DELAY_MS = 3000;
+
 const rulesDir = path.resolve(__dirname, '../tests/firestore-rules');
 const files = [
     path.resolve(__dirname, '../tests/firestore.rules.emulator.js'),
@@ -24,7 +30,14 @@ const files = [
         .map((name) => path.join(rulesDir, name)),
 ];
 
-for (const file of files) {
+function sleep(ms) {
+    execFileSync(process.execPath, ['-e', `setTimeout(() => {}, ${ms})`]);
+}
+
+files.forEach((file, index) => {
+    if (index > 0) {
+        sleep(INTER_FILE_DELAY_MS);
+    }
     const relativePath = path.relative(process.cwd(), file);
     console.log(`\n=== ${relativePath} ===`);
     try {
@@ -37,6 +50,6 @@ for (const file of files) {
         console.error(`\nFirestore rules tests failed: ${relativePath}`);
         process.exit(error.status || 1);
     }
-}
+});
 
 console.log('\nAll Firestore rules test files passed.');
