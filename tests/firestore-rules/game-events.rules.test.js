@@ -4,7 +4,6 @@
 //   firebase emulators:exec --only firestore "node --test tests/firestore-rules/game-events.rules.test.js"
 
 const test = require('node:test');
-const assert = require('node:assert/strict');
 const { initializeTestEnvironment, assertSucceeds, assertFails } = require('@firebase/rules-unit-testing');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -46,6 +45,10 @@ test.before(async () => {
     await seedDoc(`games/${GAME_ID}/user_state/${ALLIANCE_MEMBER_UID}`, {
         allianceId: 'alliance_1',
         playerSource: 'alliance',
+    });
+    await seedDoc(`games/${GAME_ID}/alliances/alliance_1`, {
+        name: 'Test Alliance',
+        members: { [ALLIANCE_MEMBER_UID]: true },
     });
     await seedDoc(`games/${GAME_ID}/events/${EVENT_ID}`, {
         name: 'Desert Storm',

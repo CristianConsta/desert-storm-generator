@@ -533,14 +533,25 @@ service cloud.firestore {
         );
     }
 
-    // Helper: check if the current user is a member of ANY alliance within
-    // the given game (via their per-game user_state doc). Used for
-    // game-level shared resources (like `events`) that aren't scoped to one
-    // specific alliance.
+    // Helper: check if the current user is a genuine member of the alliance
+    // referenced by their per-game user_state doc, within the given game.
+    // user_state.allianceId alone is NOT trusted (that document is
+    // self-writable — see `match /user_state/{uid}` above) — this function
+    // additionally verifies the authoritative alliance document actually
+    // lists the user in its members map, the same trust model as
+    // isAllianceMember() above (but parameterized by gameId instead of
+    // hardcoded to 'last_war').
+    // NOTE: This performs get() calls which count toward Firestore
+    // security-rule read limits.
     function isGameAllianceMember(gameId) {
       return signedIn()
         && exists(/databases/$(database)/documents/games/$(gameId)/user_state/$(request.auth.uid))
-        && get(/databases/$(database)/documents/games/$(gameId)/user_state/$(request.auth.uid)).data.allianceId != null;
+        && get(/databases/$(database)/documents/games/$(gameId)/user_state/$(request.auth.uid)).data.allianceId != null
+        && exists(/databases/$(database)/documents/games/$(gameId)/alliances/$(get(/databases/$(database)/documents/games/$(gameId)/user_state/$(request.auth.uid)).data.allianceId))
+        && isAllianceMemberPayload(
+          get(/databases/$(database)/documents/games/$(gameId)/alliances/$(get(/databases/$(database)/documents/games/$(gameId)/user_state/$(request.auth.uid)).data.allianceId)).data,
+          request.auth.uid
+        );
     }
 
     function isAnonymous() {
