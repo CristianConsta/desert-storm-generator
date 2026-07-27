@@ -68,6 +68,7 @@ function unauthDb() {
 // ---------------------------------------------------------------------------
 
 test.before(async () => {
+    console.error('DIAGNOSTIC: second test.before start, testEnv is', typeof testEnv, testEnv === undefined ? '(undefined)' : '(defined)');
     await seedDoc(`games/last_war/alliances/${ALLIANCE_ID}`, {
         gameId: 'last_war',
         createdBy: MEMBER_UID,
