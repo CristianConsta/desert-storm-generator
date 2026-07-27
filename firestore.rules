@@ -485,10 +485,11 @@ service cloud.firestore {
         }
       }
 
-      // Shared event definitions (game-level, all signed-in users can read/write)
+      // Shared event definitions (game-level, all signed-in users can read;
+      // only members of an alliance within this game can write)
       match /events/{eventId} {
         allow read: if signedIn();
-        allow write: if signedIn(); // TODO: tighten to alliance membership check in Phase 2.x
+        allow write: if isGameAllianceMember(gameId);
       }
 
       // Event history (game-level)
@@ -530,6 +531,16 @@ service cloud.firestore {
           get(/databases/$(database)/documents/games/last_war/alliances/$(allianceId)).data,
           request.auth.uid
         );
+    }
+
+    // Helper: check if the current user is a member of ANY alliance within
+    // the given game (via their per-game user_state doc). Used for
+    // game-level shared resources (like `events`) that aren't scoped to one
+    // specific alliance.
+    function isGameAllianceMember(gameId) {
+      return signedIn()
+        && exists(/databases/$(database)/documents/games/$(gameId)/user_state/$(request.auth.uid))
+        && get(/databases/$(database)/documents/games/$(gameId)/user_state/$(request.auth.uid)).data.allianceId != null;
     }
 
     function isAnonymous() {
